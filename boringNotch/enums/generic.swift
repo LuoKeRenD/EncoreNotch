@@ -29,33 +29,6 @@ public enum NotchViews {
     case shelf
 }
 
-enum SettingsEnum {
-    case general
-    case about
-    case charge
-    case download
-    case mediaPlayback
-    case hud
-    case shelf
-    case extensions
-}
-
-enum DownloadIndicatorStyle: String, Defaults.Serializable {
-    case progress = "Progress"
-    case percentage = "Percentage"
-}
-
-enum DownloadIconStyle: String, Defaults.Serializable {
-    case onlyAppIcon = "Only app icon"
-    case onlyIcon = "Only download icon"
-    case iconAndAppIcon = "Icon and app icon"
-}
-
-enum MirrorShapeEnum: String, Defaults.Serializable {
-    case rectangle = "Rectangular"
-    case circle = "Circular"
-}
-
 enum WindowHeightMode: String, Defaults.Serializable {
     case matchMenuBar = "Match menubar height"
     case matchRealNotchSize = "Match real notch height"

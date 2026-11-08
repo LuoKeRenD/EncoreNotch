@@ -10,7 +10,6 @@ import SwiftUI
 
 struct BoringHeader: View {
     @EnvironmentObject var vm: BoringViewModel
-    @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @StateObject var tvm = ShelfStateViewModel.shared
     var body: some View {
@@ -38,57 +37,24 @@ struct BoringHeader: View {
 
             HStack(spacing: 4) {
                 if vm.notchState == .open {
-                    if isHUDType(coordinator.sneakPeek.type) && coordinator.sneakPeek.show && Defaults[.showOpenNotchHUD] {
-                        OpenNotchHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon)
-                            .transition(.scale(scale: 0.8).combined(with: .opacity))
-                    } else {
-                        if Defaults[.showMirror] {
-                            Button(action: {
-                                vm.toggleCameraPreview()
-                            }) {
-                                Capsule()
-                                    .fill(.black)
-                                    .frame(width: 30, height: 30)
-                                    .overlay {
-                                        Image(systemName: "web.camera")
-                                            .foregroundColor(.white)
-                                            .padding()
-                                            .imageScale(.medium)
-                                    }
+                    if Defaults[.settingsIconInNotch] {
+                        Button(action: {
+                            DispatchQueue.main.async {
+                                SettingsWindowController.shared.showWindow()
                             }
-                            .buttonStyle(PlainButtonStyle())
-                        }
-                        if Defaults[.settingsIconInNotch] {
-                            Button(action: {
-                                DispatchQueue.main.async {
-                                    SettingsWindowController.shared.showWindow()
+
+                        }) {
+                            Capsule()
+                                .fill(.black)
+                                .frame(width: 30, height: 30)
+                                .overlay {
+                                    Image(systemName: "gear")
+                                        .foregroundColor(.white)
+                                        .padding()
+                                        .imageScale(.medium)
                                 }
-                                
-                            }) {
-                                Capsule()
-                                    .fill(.black)
-                                    .frame(width: 30, height: 30)
-                                    .overlay {
-                                        Image(systemName: "gear")
-                                            .foregroundColor(.white)
-                                            .padding()
-                                            .imageScale(.medium)
-                                    }
-                            }
-                            .buttonStyle(PlainButtonStyle())
                         }
-                        if Defaults[.showBatteryIndicator] {
-                            BoringBatteryView(
-                                batteryWidth: 30,
-                                isCharging: batteryModel.isCharging,
-                                isInLowPowerMode: batteryModel.isInLowPowerMode,
-                                isPluggedIn: batteryModel.isPluggedIn,
-                                levelBattery: batteryModel.levelBattery,
-                                maxCapacity: batteryModel.maxCapacity,
-                                timeToFullCharge: batteryModel.timeToFullCharge,
-                                isForNotification: false
-                            )
-                        }
+                        .buttonStyle(PlainButtonStyle())
                     }
                 }
             }
@@ -100,15 +66,6 @@ struct BoringHeader: View {
         }
         .foregroundColor(.gray)
         .environmentObject(vm)
-    }
-
-    func isHUDType(_ type: SneakContentType) -> Bool {
-        switch type {
-        case .volume, .brightness, .backlight, .mic:
-            return true
-        default:
-            return false
-        }
     }
 }
 

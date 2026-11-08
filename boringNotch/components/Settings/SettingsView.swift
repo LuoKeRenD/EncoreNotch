@@ -5,24 +5,15 @@
 //  Created by Richard Kunkli on 07/08/2024.
 //
 
-import AVFoundation
 import Defaults
-import EventKit
 import KeyboardShortcuts
 import LaunchAtLogin
-import Sparkle
 import SwiftUI
 import SwiftUIIntrospect
 
 struct SettingsView: View {
     @State private var selectedTab = "General"
     @State private var accentColorUpdateTrigger = UUID()
-
-    let updaterController: SPUStandardUpdaterController?
-
-    init(updaterController: SPUStandardUpdaterController? = nil) {
-        self.updaterController = updaterController
-    }
 
     var body: some View {
         NavigationSplitView {
@@ -36,18 +27,6 @@ struct SettingsView: View {
                 NavigationLink(value: "Media") {
                     Label("Media", systemImage: "play.laptopcomputer")
                 }
-                NavigationLink(value: "Calendar") {
-                    Label("Calendar", systemImage: "calendar")
-                }
-                NavigationLink(value: "HUD") {
-                    Label("HUDs", systemImage: "dial.medium.fill")
-                }
-                NavigationLink(value: "Battery") {
-                    Label("Battery", systemImage: "battery.100.bolt")
-                }
-//                NavigationLink(value: "Downloads") {
-//                    Label("Downloads", systemImage: "square.and.arrow.down")
-//                }
                 NavigationLink(value: "Shelf") {
                     Label("Shelf", systemImage: "books.vertical")
                 }
@@ -77,12 +56,6 @@ struct SettingsView: View {
                     Appearance()
                 case "Media":
                     Media()
-                case "Calendar":
-                    CalendarSettings()
-                case "HUD":
-                    HUD()
-                case "Battery":
-                    Charge()
                 case "Shelf":
                     Shelf()
                 case "Shortcuts":
@@ -92,15 +65,7 @@ struct SettingsView: View {
                 case "Advanced":
                     Advanced()
                 case "About":
-                    if let controller = updaterController {
-                        About(updaterController: controller)
-                    } else {
-                        // Fallback with a default controller
-                        About(
-                            updaterController: SPUStandardUpdaterController(
-                                startingUpdater: false, updaterDelegate: nil,
-                                userDriverDelegate: nil))
-                    }
+                    About()
                 default:
                     GeneralSettings()
                 }
@@ -135,7 +100,6 @@ struct GeneralSettings: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var coordinator = BoringViewCoordinator.shared
 
-    @Default(.mirrorShape) var mirrorShape
     @Default(.showEmojis) var showEmojis
     @Default(.gestureSensitivity) var gestureSensitivity
     @Default(.minimumHoverDuration) var minimumHoverDuration
@@ -348,249 +312,6 @@ struct GeneralSettings: View {
     }
 }
 
-struct Charge: View {
-    var body: some View {
-        Form {
-            Section {
-                Defaults.Toggle(key: .showBatteryIndicator) {
-                    Text("Show battery indicator")
-                }
-                Defaults.Toggle(key: .showPowerStatusNotifications) {
-                    Text("Show power status notifications")
-                }
-            } header: {
-                Text("General")
-            }
-            Section {
-                Defaults.Toggle(key: .showBatteryPercentage) {
-                    Text("Show battery percentage")
-                }
-                Defaults.Toggle(key: .showPowerStatusIcons) {
-                    Text("Show power status icons")
-                }
-            } header: {
-                Text("Battery Information")
-            }
-        }
-        .onAppear {
-            Task { @MainActor in
-                await XPCHelperClient.shared.isAccessibilityAuthorized()
-            }
-        }
-        .accentColor(.effectiveAccent)
-        .navigationTitle("Battery")
-    }
-}
-
-//struct Downloads: View {
-//    @Default(.selectedDownloadIndicatorStyle) var selectedDownloadIndicatorStyle
-//    @Default(.selectedDownloadIconStyle) var selectedDownloadIconStyle
-//    var body: some View {
-//        Form {
-//            warningBadge("We don't support downloads yet", "It will be supported later on.")
-//            Section {
-//                Defaults.Toggle(key: .enableDownloadListener) {
-//                    Text("Show download progress")
-//                }
-//                    .disabled(true)
-//                Defaults.Toggle(key: .enableSafariDownloads) {
-//                    Text("Enable Safari Downloads")
-//                }
-//                    .disabled(!Defaults[.enableDownloadListener])
-//                Picker("Download indicator style", selection: $selectedDownloadIndicatorStyle) {
-//                    Text("Progress bar")
-//                        .tag(DownloadIndicatorStyle.progress)
-//                    Text("Percentage")
-//                        .tag(DownloadIndicatorStyle.percentage)
-//                }
-//                Picker("Download icon style", selection: $selectedDownloadIconStyle) {
-//                    Text("Only app icon")
-//                        .tag(DownloadIconStyle.onlyAppIcon)
-//                    Text("Only download icon")
-//                        .tag(DownloadIconStyle.onlyIcon)
-//                    Text("Both")
-//                        .tag(DownloadIconStyle.iconAndAppIcon)
-//                }
-//
-//            } header: {
-//                HStack {
-//                    Text("Download indicators")
-//                    comingSoonTag()
-//                }
-//            }
-//            Section {
-//                List {
-//                    ForEach([].indices, id: \.self) { index in
-//                        Text("\(index)")
-//                    }
-//                }
-//                .frame(minHeight: 96)
-//                .overlay {
-//                    if true {
-//                        Text("No excluded apps")
-//                            .foregroundStyle(Color(.secondaryLabelColor))
-//                    }
-//                }
-//                .actionBar(padding: 0) {
-//                    Group {
-//                        Button {
-//                        } label: {
-//                            Image(systemName: "plus")
-//                                .frame(width: 25, height: 16, alignment: .center)
-//                                .contentShape(Rectangle())
-//                                .foregroundStyle(.secondary)
-//                        }
-//
-//                        Divider()
-//                        Button {
-//                        } label: {
-//                            Image(systemName: "minus")
-//                                .frame(width: 20, height: 16, alignment: .center)
-//                                .contentShape(Rectangle())
-//                                .foregroundStyle(.secondary)
-//                        }
-//                    }
-//                }
-//            } header: {
-//                HStack(spacing: 4) {
-//                    Text("Exclude apps")
-//                    comingSoonTag()
-//                }
-//            }
-//        }
-//        .navigationTitle("Downloads")
-//    }
-//}
-
-struct HUD: View {
-    @EnvironmentObject var vm: BoringViewModel
-    @Default(.inlineHUD) var inlineHUD
-    @Default(.enableGradient) var enableGradient
-    @Default(.optionKeyAction) var optionKeyAction
-    @Default(.hudReplacement) var hudReplacement
-    @ObservedObject var coordinator = BoringViewCoordinator.shared
-    @State private var accessibilityAuthorized = false
-    
-    var body: some View {
-        Form {
-            Section {
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Replace system HUD")
-                            .font(.headline)
-                        Text("Replaces the standard macOS volume, display brightness, and keyboard brightness HUDs with a custom design.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    Spacer(minLength: 40)
-                    Defaults.Toggle("", key: .hudReplacement)
-                    .labelsHidden()
-                    .toggleStyle(.switch)
-                    .controlSize(.large)
-                    .disabled(!accessibilityAuthorized)
-                }
-                
-                if !accessibilityAuthorized {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Accessibility access is required to replace the system HUD.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-
-                        HStack(spacing: 12) {
-                            Button("Request Accessibility") {
-                                XPCHelperClient.shared.requestAccessibilityAuthorization()
-                            }
-                            .buttonStyle(.borderedProminent)
-                        }
-                    }
-                    .padding(.top, 6)
-                }
-            }
-            
-            Section {
-                Picker("Option key behaviour", selection: $optionKeyAction) {
-                    ForEach(OptionKeyAction.allCases) { opt in
-                        Text(opt.rawValue).tag(opt)
-                    }
-                }
-                
-                Picker("Progress bar style", selection: $enableGradient) {
-                    Text("Hierarchical")
-                        .tag(false)
-                    Text("Gradient")
-                        .tag(true)
-                }
-                Defaults.Toggle(key: .systemEventIndicatorShadow) {
-                    Text("Enable glowing effect")
-                }
-                Defaults.Toggle(key: .systemEventIndicatorUseAccent) {
-                    Text("Tint progress bar with accent color")
-                }
-            } header: {
-                Text("General")
-            }
-            .disabled(!hudReplacement)
-            
-            Section {
-                Defaults.Toggle(key: .showOpenNotchHUD) {
-                    Text("Show HUD in open notch")
-                }
-                Defaults.Toggle(key: .showOpenNotchHUDPercentage) {
-                    Text("Show percentage")
-                }
-                .disabled(!Defaults[.showOpenNotchHUD])
-            } header: {
-                HStack {
-                    Text("Open Notch")
-                    customBadge(text: "Beta")
-                }
-            }
-            .disabled(!hudReplacement)
-            
-            Section {
-                Picker("HUD style", selection: $inlineHUD) {
-                    Text("Default")
-                        .tag(false)
-                    Text("Inline")
-                        .tag(true)
-                }
-                .onChange(of: Defaults[.inlineHUD]) {
-                    if Defaults[.inlineHUD] {
-                        withAnimation {
-                            Defaults[.systemEventIndicatorShadow] = false
-                            Defaults[.enableGradient] = false
-                        }
-                    }
-                }
-                
-                Defaults.Toggle(key: .showClosedNotchHUDPercentage) {
-                    Text("Show percentage")
-                }
-            } header: {
-                Text("Closed Notch")
-            }
-            .disabled(!Defaults[.hudReplacement])
-        }
-        .accentColor(.effectiveAccent)
-        .navigationTitle("HUDs")
-        .task {
-            accessibilityAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
-        }
-        .onAppear {
-            XPCHelperClient.shared.startMonitoringAccessibilityAuthorization()
-        }
-        .onDisappear {
-            XPCHelperClient.shared.stopMonitoringAccessibilityAuthorization()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .accessibilityAuthorizationChanged)) { notification in
-            if let granted = notification.userInfo?["granted"] as? Bool {
-                accessibilityAuthorized = granted
-            }
-        }
-    }
-}
-
 struct Media: View {
     @Default(.waitInterval) var waitInterval
     @Default(.mediaController) var mediaController
@@ -707,114 +428,6 @@ struct Media: View {
     }
 }
 
-struct CalendarSettings: View {
-    @ObservedObject private var calendarManager = CalendarManager.shared
-    @Default(.showCalendar) var showCalendar: Bool
-    @Default(.hideCompletedReminders) var hideCompletedReminders
-    @Default(.hideAllDayEvents) var hideAllDayEvents
-    @Default(.autoScrollToNextEvent) var autoScrollToNextEvent
-
-    var body: some View {
-        Form {
-            Defaults.Toggle(key: .showCalendar) {
-                Text("Show calendar")
-            }
-            Defaults.Toggle(key: .hideCompletedReminders) {
-                Text("Hide completed reminders")
-            }
-            Defaults.Toggle(key: .hideAllDayEvents) {
-                Text("Hide all-day events")
-            }
-            Defaults.Toggle(key: .autoScrollToNextEvent) {
-                Text("Auto-scroll to next event")
-            }
-            Defaults.Toggle(key: .showFullEventTitles) {
-                Text("Always show full event titles")
-            }
-            Section(header: Text("Calendars")) {
-                if calendarManager.calendarAuthorizationStatus != .fullAccess {
-                    Text("Calendar access is denied. Please enable it in System Settings.")
-                        .foregroundColor(.red)
-                        .multilineTextAlignment(.center)
-                        .padding()
-                    Button("Open Calendar Settings") {
-                        if let settingsURL = URL(
-                            string:
-                                "x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars"
-                        ) {
-                            NSWorkspace.shared.open(settingsURL)
-                        }
-                    }
-                } else {
-                    List {
-                        ForEach(calendarManager.eventCalendars, id: \.id) { calendar in
-                            Toggle(
-                                isOn: Binding(
-                                    get: { calendarManager.getCalendarSelected(calendar) },
-                                    set: { isSelected in
-                                        Task {
-                                            await calendarManager.setCalendarSelected(
-                                                calendar, isSelected: isSelected)
-                                        }
-                                    }
-                                )
-                            ) {
-                                Text(calendar.title)
-                            }
-                            .accentColor(lighterColor(from: calendar.color))
-                            .disabled(!showCalendar)
-                        }
-                    }
-                }
-            }
-            Section(header: Text("Reminders")) {
-                if calendarManager.reminderAuthorizationStatus != .fullAccess {
-                    Text("Reminder access is denied. Please enable it in System Settings.")
-                        .foregroundColor(.red)
-                        .multilineTextAlignment(.center)
-                        .padding()
-                    Button("Open Reminder Settings") {
-                        if let settingsURL = URL(
-                            string:
-                                "x-apple.systempreferences:com.apple.preference.security?Privacy_Reminders"
-                        ) {
-                            NSWorkspace.shared.open(settingsURL)
-                        }
-                    }
-                } else {
-                    List {
-                        ForEach(calendarManager.reminderLists, id: \.id) { calendar in
-                            Toggle(
-                                isOn: Binding(
-                                    get: { calendarManager.getCalendarSelected(calendar) },
-                                    set: { isSelected in
-                                        Task {
-                                            await calendarManager.setCalendarSelected(
-                                                calendar, isSelected: isSelected)
-                                        }
-                                    }
-                                )
-                            ) {
-                                Text(calendar.title)
-                            }
-                            .accentColor(lighterColor(from: calendar.color))
-                            .disabled(!showCalendar)
-                        }
-                    }
-                }
-            }
-        }
-        .accentColor(.effectiveAccent)
-        .navigationTitle("Calendar")
-        .onAppear {
-            Task {
-                await calendarManager.checkCalendarAuthorization()
-                await calendarManager.checkReminderAuthorization()
-            }
-        }
-    }
-}
-
 func lighterColor(from nsColor: NSColor, amount: CGFloat = 0.14) -> Color {
     let srgb = nsColor.usingColorSpace(.sRGB) ?? nsColor
     var (r, g, b, a): (CGFloat, CGFloat, CGFloat, CGFloat) = (0,0,0,0)
@@ -834,7 +447,6 @@ func lighterColor(from nsColor: NSColor, amount: CGFloat = 0.14) -> Color {
 
 struct About: View {
     @State private var showBuildNumber: Bool = false
-    let updaterController: SPUStandardUpdaterController
     @Environment(\.openWindow) var openWindow
     var body: some View {
         VStack {
@@ -865,8 +477,6 @@ struct About: View {
                     Text("Version info")
                 }
 
-                UpdaterSettingsView(updater: updaterController.updater)
-
                 HStack(spacing: 30) {
                     Spacer(minLength: 0)
                     Button {
@@ -879,7 +489,7 @@ struct About: View {
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 18)
-                            Text("GitHub")
+                            Text("Based on Boring Notch")
                         }
                         .contentShape(Rectangle())
                     }
@@ -889,7 +499,7 @@ struct About: View {
             }
             VStack(spacing: 0) {
                 Divider()
-                Text("Made with 🫶🏻 by not so boring not.people")
+                Text("LyricsIsland is a modified version of Boring Notch by TheBoredTeam, licensed under GPL-3.0.")
                     .foregroundStyle(.secondary)
                     .padding(.top, 5)
                     .padding(.bottom, 7)
@@ -897,13 +507,6 @@ struct About: View {
                     .padding(.horizontal, 10)
             }
             .frame(maxWidth: .infinity, alignment: .center)
-        }
-        .toolbar {
-            //            Button("Welcome window") {
-            //                openWindow(id: "onboarding")
-            //            }
-            //            .controlSize(.extraLarge)
-            CheckForUpdatesView(updater: updaterController.updater)
         }
         .navigationTitle("About")
     }
@@ -1159,7 +762,6 @@ struct Shelf: View {
 
 struct Appearance: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
-    @Default(.mirrorShape) var mirrorShape
     @Default(.sliderColor) var sliderColor
     @Default(.useMusicVisualizer) var useMusicVisualizer
     @Default(.customVisualizers) var customVisualizers
@@ -1377,16 +979,6 @@ struct Appearance: View {
             }
 
             Section {
-                Defaults.Toggle(key: .showMirror) {
-                    Text("Enable boring mirror")
-                }
-                    .disabled(!checkVideoInput())
-                Picker("Mirror shape", selection: $mirrorShape) {
-                    Text("Circle")
-                        .tag(MirrorShapeEnum.circle)
-                    Text("Square")
-                        .tag(MirrorShapeEnum.rectangle)
-                }
                 Defaults.Toggle(key: .showNotHumanFace) {
                     Text("Show cool face animation while inactive")
                 }
@@ -1398,14 +990,6 @@ struct Appearance: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Appearance")
-    }
-
-    func checkVideoInput() -> Bool {
-        if AVCaptureDevice.default(for: .video) != nil {
-            return true
-        }
-
-        return false
     }
 }
 
@@ -1792,8 +1376,4 @@ func warningBadge(_ text: String, _ description: String) -> some View {
             Spacer()
         }
     }
-}
-
-#Preview {
-    HUD()
 }

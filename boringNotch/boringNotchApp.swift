@@ -5,11 +5,9 @@
 //  Created by Harsh Vardhan  Goswami  on 02/08/24.
 //
 
-import AVFoundation
 import Combine
 import Defaults
 import KeyboardShortcuts
-import Sparkle
 import SwiftUI
 
 @main
@@ -18,27 +16,16 @@ struct DynamicNotchApp: App {
     @Default(.menubarIcon) var showMenuBarIcon
     @Environment(\.openWindow) var openWindow
 
-    let updaterController: SPUStandardUpdaterController
-
-    init() {
-        updaterController = SPUStandardUpdaterController(
-            startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
-
-        // Initialize the settings window controller with the updater controller
-        SettingsWindowController.shared.setUpdaterController(updaterController)
-    }
-
     var body: some Scene {
-        MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
+        MenuBarExtra("LyricsIsland", systemImage: "music.note", isInserted: $showMenuBarIcon) {
             Button("Settings") {
                 DispatchQueue.main.async {
                     SettingsWindowController.shared.showWindow()
                 }
             }
             .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
-            CheckForUpdatesView(updater: updaterController.updater)
             Divider()
-            Button("Restart Boring Notch") {
+            Button("Restart LyricsIsland") {
                 ApplicationRelauncher.restart()
             }
             Button("Quit", role: .destructive) {
@@ -85,7 +72,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         MusicManager.shared.destroy()
         cleanupDragDetectors()
         cleanupWindows()
-        XPCHelperClient.shared.stopMonitoringAccessibilityAuthorization()
     }
 
     @MainActor
@@ -426,7 +412,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             DispatchQueue.main.async {
                 self.showOnboardingWindow()
             }
-            playWelcomeSound()
         } else if MusicManager.shared.isNowPlayingDeprecated
             && Defaults[.mediaController] == .nowPlaying
         {
@@ -436,11 +421,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         previousScreens = NSScreen.screens
-    }
-
-    func playWelcomeSound() {
-        let audioPlayer = AudioPlayer()
-        audioPlayer.play(fileName: "boring", fileExtension: "m4a")
     }
 
     func deviceHasNotch() -> Bool {

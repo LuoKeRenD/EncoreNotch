@@ -29,17 +29,11 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var hideOnClosed: Bool = true
 
     @Published var edgeAutoOpenActive: Bool = false
-    @Published var isHoveringCalendar: Bool = false
-    @Published var isBatteryPopoverActive: Bool = false
 
     @Published var screenUUID: String?
 
     @Published var notchSize: CGSize = getClosedNotchSize()
     @Published var closedNotchSize: CGSize = getClosedNotchSize()
-    
-    let webcamManager = WebcamManager.shared
-    @Published var isCameraExpanded: Bool = false
-    @Published var isRequestingAuthorization: Bool = false
     
     deinit {
         destroy()
@@ -128,54 +122,6 @@ class BoringViewModel: NSObject, ObservableObject {
         return max(0, menuBarHeight - currentHeight)
     }
 
-    func toggleCameraPreview() {
-        if isRequestingAuthorization {
-            return
-        }
-
-        switch webcamManager.authorizationStatus {
-        case .authorized:
-            if webcamManager.isSessionRunning {
-                webcamManager.stopSession()
-                isCameraExpanded = false
-            } else if webcamManager.cameraAvailable {
-                webcamManager.startSession()
-                isCameraExpanded = true
-            }
-
-        case .denied, .restricted:
-            DispatchQueue.main.async {
-                NSApp.setActivationPolicy(.regular)
-                NSApp.activate(ignoringOtherApps: true)
-
-                let alert = NSAlert()
-                alert.messageText = "Camera Access Required"
-                alert.informativeText = "Please allow camera access in System Settings."
-                alert.addButton(withTitle: "Open Settings")
-                alert.addButton(withTitle: "Cancel")
-
-                if alert.runModal() == .alertFirstButtonReturn {
-                    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Camera") {
-                        NSWorkspace.shared.open(url)
-                    }
-                }
-
-                NSApp.setActivationPolicy(.accessory)
-                NSApp.deactivate()
-            }
-
-        case .notDetermined:
-            isRequestingAuthorization = true
-            webcamManager.checkAndRequestVideoAuthorization()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                self.isRequestingAuthorization = false
-            }
-
-        default:
-            break
-        }
-    }
-    
     func isMouseHovering(position: NSPoint = NSEvent.mouseLocation) -> Bool {
         let screenFrame = getScreenFrame(screenUUID)
         if let frame = screenFrame {
@@ -205,7 +151,6 @@ class BoringViewModel: NSObject, ObservableObject {
         self.notchSize = getClosedNotchSize(screenUUID: self.screenUUID)
         self.closedNotchSize = self.notchSize
         self.notchState = .closed
-        self.isBatteryPopoverActive = false
         self.coordinator.sneakPeek.show = false
         self.edgeAutoOpenActive = false
 
@@ -215,15 +160,6 @@ class BoringViewModel: NSObject, ObservableObject {
             coordinator.currentView = .shelf
         } else if !coordinator.openLastTabByDefault {
             coordinator.currentView = .home
-        }
-    }
-
-    func closeHello() {
-        Task { @MainActor in
-            withAnimation(animationLibrary.animation) {
-                coordinator.helloAnimationRunning = false
-                close()
-            }
         }
     }
 }
