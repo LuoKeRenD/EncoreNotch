@@ -8,6 +8,7 @@
 import Defaults
 import KeyboardShortcuts
 import LaunchAtLogin
+import LyricsKit
 import SwiftUI
 import SwiftUIIntrospect
 
@@ -318,6 +319,7 @@ struct GeneralSettings: View {
 }
 
 struct Media: View {
+    @ObservedObject private var lyrics = LyricsController.app
     @Default(.waitInterval) var waitInterval
     @Default(.mediaController) var mediaController
     @ObservedObject var coordinator = BoringViewCoordinator.shared
@@ -407,6 +409,21 @@ struct Media: View {
                 MusicSlotConfigurationView()
                 Defaults.Toggle(key: .enableLyrics) {
                     Text("Show lyrics")
+                }
+                Stepper(
+                    value: Binding(get: { lyrics.globalOffset }, set: { lyrics.setGlobalOffset($0) }),
+                    in: LyricsController.offsetRange,
+                    step: 0.1
+                ) {
+                    VStack(alignment: .leading) {
+                        Text("Lyrics offset: \(String(format: "%+.1f", lyrics.globalOffset))s")
+                        Text("Positive shows lyrics earlier. Hover the lyrics in the notch to adjust one song.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Button("Clear Saved Lyrics") {
+                    LyricsCache.app.clear()
                 }
             } header: {
                 Text("Media controls")

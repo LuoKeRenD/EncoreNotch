@@ -25,14 +25,17 @@ public struct LRCLIBProvider: LyricsProvider {
         let instrumental: Bool?
         let plainLyrics: String?
         let syncedLyrics: String?
+        let hasWordSync: Bool?
+        let lyricsfile: String?
     }
 
     public func lyrics(for query: TrackQuery) async throws -> Lyrics? {
         var candidates: [Record] = []
 
         // The exact lookup needs album and duration, and is usually the best match.
+        // Only word timing ends the search, since another entry may have it.
         if !query.album.isEmpty, query.duration > 0, let exact = try await fetchExact(query) {
-            if let lyrics = convert(exact), case .synced = lyrics { return lyrics }
+            if let lyrics = convert(exact), lyrics.hasWordTiming { return lyrics }
             candidates.append(exact)
         }
 
@@ -43,7 +46,30 @@ public struct LRCLIBProvider: LyricsProvider {
                 candidates += try await search(title: simplified, artist: query.artist)
             }
         }
+
+        // The same song is often filed under the other Chinese script, and only
+        // one of the entries may have word timing.
+        if !candidates.contains(where: { convert($0)?.hasWordTiming == true }) {
+            for variant in Self.chineseScriptVariants(of: query) {
+                candidates += (try? await search(title: variant.title, artist: variant.artist)) ?? []
+            }
+        }
         return best(of: candidates, for: query)
+    }
+
+    /// The query rewritten in Simplified and in Traditional Chinese, leaving
+    /// out any that match the original.
+    static func chineseScriptVariants(of query: TrackQuery) -> [(title: String, artist: String)] {
+        var variants: [(title: String, artist: String)] = []
+        for transform in [StringTransform("Hant-Hans"), StringTransform("Hans-Hant")] {
+            let title = query.title.applyingTransform(transform, reverse: false) ?? query.title
+            let artist = query.artist.applyingTransform(transform, reverse: false) ?? query.artist
+            let isOriginal = title == query.title && artist == query.artist
+            if !isOriginal, !variants.contains(where: { $0.title == title && $0.artist == artist }) {
+                variants.append((title, artist))
+            }
+        }
+        return variants
     }
 
     /// Streaming services add suffixes that community lyric titles usually lack.
@@ -61,6 +87,9 @@ public struct LRCLIBProvider: LyricsProvider {
 
     private func convert(_ record: Record) -> Lyrics? {
         if record.instrumental == true { return .instrumental }
+        if record.hasWordSync == true, let file = record.lyricsfile, let lines = LyricsfileParser.parse(file) {
+            return .synced(lines)
+        }
         if let synced = record.syncedLyrics {
             let lines = LRCParser.parse(synced)
             if lines.contains(where: { !$0.text.isEmpty }) { return .synced(lines) }
@@ -78,9 +107,9 @@ public struct LRCLIBProvider: LyricsProvider {
         }
         func tier(_ lyrics: Lyrics) -> Int {
             switch lyrics {
-            case .synced: return 0
-            case .plain: return 1
-            case .instrumental: return 2
+            case .synced: return lyrics.hasWordTiming ? 0 : 1
+            case .plain: return 2
+            case .instrumental: return 3
             }
         }
         return records

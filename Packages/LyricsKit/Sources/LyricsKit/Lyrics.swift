@@ -15,21 +15,44 @@ public struct TrackQuery: Equatable, Sendable {
     }
 }
 
-public struct LyricLine: Equatable, Sendable {
+public struct LyricWord: Equatable, Codable, Sendable {
     public var start: TimeInterval
-    /// Empty for a timed gap between sung lines.
+    public var end: TimeInterval
+    /// May carry trailing spaces, which matter when words are joined.
     public var text: String
 
-    public init(start: TimeInterval, text: String) {
+    public init(start: TimeInterval, end: TimeInterval, text: String) {
         self.start = start
+        self.end = end
         self.text = text
     }
 }
 
-public enum Lyrics: Equatable, Sendable {
+public struct LyricLine: Equatable, Codable, Sendable {
+    public var start: TimeInterval
+    /// Empty for a timed gap between sung lines.
+    public var text: String
+    public var end: TimeInterval?
+    /// Empty when this line only has line-level timing.
+    public var words: [LyricWord]
+
+    public init(start: TimeInterval, text: String, end: TimeInterval? = nil, words: [LyricWord] = []) {
+        self.start = start
+        self.text = text
+        self.end = end
+        self.words = words
+    }
+}
+
+public enum Lyrics: Equatable, Codable, Sendable {
     case synced([LyricLine])
     case plain(String)
     case instrumental
+
+    public var hasWordTiming: Bool {
+        guard case .synced(let lines) = self else { return false }
+        return lines.contains { !$0.words.isEmpty }
+    }
 }
 
 public protocol LyricsProvider: Sendable {

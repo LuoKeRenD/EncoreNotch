@@ -13,7 +13,15 @@ public final class LyricsController: ObservableObject {
     }
 
     @Published public private(set) var status: Status = .idle
+    /// Seconds added to the playback position, so positive shows lyrics earlier.
+    @Published public private(set) var globalOffset: TimeInterval
+    @Published public private(set) var trackOffset: TimeInterval = 0
 
+    public static let offsetRange: ClosedRange<TimeInterval> = -5...5
+    private static let globalOffsetKey = "lyricsGlobalOffset"
+    private static let trackOffsetsKey = "lyricsTrackOffsets"
+
+    private let defaults: UserDefaults
     private let provider: any LyricsProvider
     private let settleDelay: Duration
     private let retryDelay: Duration
@@ -26,11 +34,38 @@ public final class LyricsController: ObservableObject {
     public init(
         provider: any LyricsProvider,
         settleDelay: Duration = .milliseconds(300),
-        retryDelay: Duration = .seconds(1)
+        retryDelay: Duration = .seconds(1),
+        defaults: UserDefaults = .standard
     ) {
         self.provider = provider
         self.settleDelay = settleDelay
         self.retryDelay = retryDelay
+        self.defaults = defaults
+        self.globalOffset = defaults.double(forKey: Self.globalOffsetKey)
+    }
+
+    private static func sanitized(_ offset: TimeInterval) -> TimeInterval {
+        // Whole tenths, so repeated steps do not accumulate floating point noise.
+        (Swift.min(Swift.max(offset, offsetRange.lowerBound), offsetRange.upperBound) * 10).rounded() / 10
+    }
+
+    public func setGlobalOffset(_ offset: TimeInterval) {
+        globalOffset = Self.sanitized(offset)
+        defaults.set(globalOffset, forKey: Self.globalOffsetKey)
+    }
+
+    /// Remembered per track. Does nothing when no track is loaded.
+    public func setTrackOffset(_ offset: TimeInterval) {
+        guard let trackKey else { return }
+        trackOffset = Self.sanitized(offset)
+        var stored = defaults.dictionary(forKey: Self.trackOffsetsKey) as? [String: Double] ?? [:]
+        stored[trackKey] = trackOffset == 0 ? nil : trackOffset
+        defaults.set(stored, forKey: Self.trackOffsetsKey)
+    }
+
+    private func storedTrackOffset(for key: String?) -> TimeInterval {
+        guard let key else { return 0 }
+        return (defaults.dictionary(forKey: Self.trackOffsetsKey) as? [String: Double])?[key] ?? 0
     }
 
     /// Call on every player update. Repeats for the same track cost nothing,
@@ -48,6 +83,7 @@ public final class LyricsController: ObservableObject {
         loadTask?.cancel()
         clock = PlaybackClock()
         lastSample = nil
+        trackOffset = storedTrackOffset(for: key)
 
         guard query != nil else {
             status = .idle
@@ -103,5 +139,10 @@ public final class LyricsController: ObservableObject {
 
     public func position(at uptime: TimeInterval = ProcessInfo.processInfo.systemUptime) -> TimeInterval {
         clock.position(at: uptime)
+    }
+
+    /// The position to look up lyrics with, including the user's offsets.
+    public func lyricPosition(at uptime: TimeInterval = ProcessInfo.processInfo.systemUptime) -> TimeInterval {
+        position(at: uptime) + globalOffset + trackOffset
     }
 }

@@ -156,7 +156,7 @@ final class LRCLIBProviderTests: XCTestCase {
             recorder: recorder
         ).lyrics(for: full)
         XCTAssertEqual(result, .synced([LyricLine(start: 1, text: "hello")]))
-        XCTAssertEqual(recorder.paths, ["get"])
+        XCTAssertEqual(recorder.paths, ["get", "search"])
     }
 
     func testPlainExactFallsThroughToSyncedSearchResult() async throws {

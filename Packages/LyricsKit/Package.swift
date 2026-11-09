@@ -7,8 +7,11 @@ let package = Package(
     products: [
         .library(name: "LyricsKit", targets: ["LyricsKit"])
     ],
+    dependencies: [
+        .package(url: "https://github.com/jpsim/Yams", from: "5.1.0")
+    ],
     targets: [
-        .target(name: "LyricsKit"),
+        .target(name: "LyricsKit", dependencies: ["Yams"]),
         .testTarget(name: "LyricsKitTests", dependencies: ["LyricsKit"]),
     ]
 )
