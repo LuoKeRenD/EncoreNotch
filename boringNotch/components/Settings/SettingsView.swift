@@ -406,10 +406,7 @@ struct Media: View {
             Section {
                 MusicSlotConfigurationView()
                 Defaults.Toggle(key: .enableLyrics) {
-                    HStack {
-                        Text("Show lyrics below artist name")
-                        customBadge(text: "Beta")
-                    }
+                    Text("Show lyrics")
                 }
             } header: {
                 Text("Media controls")

@@ -118,6 +118,14 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
         self.pipeHandler = nil
     }
 
+    /// The stream task keeps this object alive, so `deinit` alone never stops
+    /// the adapter. Ending the process closes the pipe and finishes that task.
+    func shutdown() {
+        if let process, process.isRunning {
+            process.terminate()
+        }
+    }
+
     // MARK: - Protocol Implementation
     func play() async {
         MRMediaRemoteSendCommandFunction(0, nil)
