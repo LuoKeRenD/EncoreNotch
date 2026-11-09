@@ -68,6 +68,11 @@ struct ContentView: View {
         return true
     }
 
+    /// The state of the session most in need of attention.
+    private var closedClaudeState: ClaudeSessionState {
+        claudeMonitor.sessions.first?.state ?? .waitingForInput
+    }
+
     private var showsClosedClaudeIndicator: Bool {
         !coordinator.expandingView.show && vm.notchState == .closed && claudeMonitor.activity != .none && !vm.hideOnClosed
     }
@@ -315,13 +320,12 @@ struct ContentView: View {
     func ClaudeClosedIndicator() -> some View {
         let side = max(0, vm.effectiveClosedNotchHeight - 12)
         HStack {
-            Rectangle()
-                .fill(.clear)
+            ClawdMark(cellWidth: side >= 24 ? 1.5 : 1)
                 .frame(width: side, height: side)
             Rectangle()
                 .fill(.black)
                 .frame(width: vm.closedNotchSize.width - 20)
-            ClaudeActivityDot(activity: claudeMonitor.activity)
+            ClaudeSpinner(state: closedClaudeState, size: 15)
                 .frame(width: side, height: side)
         }
         .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
@@ -349,6 +353,27 @@ struct ContentView: View {
     }
 
     @ViewBuilder
+    func ClosedArtworkPlaybackState() -> some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.closed)
+                .fill(.black.opacity(musicManager.isPlaying ? 0.4 : 0.65))
+
+            if musicManager.isPlaying {
+                Rectangle()
+                    .fill(.white)
+                    .mask {
+                        AudioSpectrumView(isPlaying: $musicManager.isPlaying)
+                            .frame(width: 14, height: 11)
+                    }
+            } else {
+                Image(systemName: "pause.fill")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(.white)
+            }
+        }
+    }
+
+    @ViewBuilder
     func MusicLiveActivity() -> some View {
         HStack {
             Image(nsImage: musicManager.albumArt)
@@ -363,10 +388,10 @@ struct ContentView: View {
                     width: max(0, vm.effectiveClosedNotchHeight - 12),
                     height: max(0, vm.effectiveClosedNotchHeight - 12)
                 )
-                .overlay(alignment: .bottomTrailing) {
+                .overlay {
+                    // The spectrum slot belongs to Claude, so the artwork shows playback.
                     if claudeMonitor.activity != .none {
-                        ClaudeActivityDot(activity: claudeMonitor.activity, size: 6)
-                            .offset(x: 2, y: 2)
+                        ClosedArtworkPlaybackState()
                     }
                 }
 
@@ -418,7 +443,9 @@ struct ContentView: View {
                 )
 
             HStack {
-                if useMusicVisualizer {
+                if claudeMonitor.activity != .none {
+                    ClaudeSpinner(state: closedClaudeState, size: 15)
+                } else if useMusicVisualizer {
                     Rectangle()
                         .fill(
                             Defaults[.coloredSpectrogram]

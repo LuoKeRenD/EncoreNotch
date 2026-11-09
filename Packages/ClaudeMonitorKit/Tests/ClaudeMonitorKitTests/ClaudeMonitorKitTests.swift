@@ -439,10 +439,15 @@ final class ClaudeHookInstallerTests: XCTestCase {
         try process.run()
         input.fileHandleForWriting.write(Data(bashRequest.utf8))
         try input.fileHandleForWriting.close()
-        Thread.sleep(forTimeInterval: 0.6)
 
         let fm = FileManager.default
-        let name = try XCTUnwrap(fm.contentsOfDirectory(atPath: paths.approvalDirectory.path).first { $0.hasSuffix(".request.json") })
+        var requests: [String] = []
+        for _ in 0..<500 where requests.isEmpty {
+            Thread.sleep(forTimeInterval: 0.01)
+            let entries = (try? fm.contentsOfDirectory(atPath: paths.approvalDirectory.path)) ?? []
+            requests = entries.filter { $0.hasSuffix(".request.json") }
+        }
+        let name = try XCTUnwrap(requests.first)
         let attributes = try fm.attributesOfItem(atPath: paths.approvalDirectory.appendingPathComponent(name).path)
         XCTAssertEqual((attributes[.posixPermissions] as? NSNumber)?.intValue, 0o600)
 

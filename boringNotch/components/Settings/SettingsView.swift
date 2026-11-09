@@ -99,6 +99,7 @@ struct SettingsView: View {
 }
 
 struct GeneralSettings: View {
+    @State private var language = AppLanguage.current
     @State private var screens: [(uuid: String, name: String)] = NSScreen.screens.compactMap { screen in
         guard let uuid = screen.displayUUID else { return nil }
         return (uuid, screen.localizedName)
@@ -129,7 +130,18 @@ struct GeneralSettings: View {
                     Text("Show menu bar icon")
                 }
                 .tint(.effectiveAccent)
-                LaunchAtLogin.Toggle("Launch at login")
+                Picker("Language", selection: $language) {
+                    Text("Follow System").tag(AppLanguage.system)
+                    Text(verbatim: "English").tag(AppLanguage.english)
+                    Text(verbatim: "简体中文").tag(AppLanguage.simplifiedChinese)
+                }
+                .onChange(of: language) { _, newValue in
+                    newValue.apply()
+                    ApplicationRelauncher.restart()
+                }
+                LaunchAtLogin.Toggle {
+                    Text("Launch at login")
+                }
                 Defaults.Toggle(key: .showOnAllDisplays) {
                     Text("Show on all displays")
                 }
@@ -375,7 +387,7 @@ struct Media: View {
                 Toggle("Show sneak peek on playback changes", isOn: $enableSneakPeek)
                 Picker("Sneak Peek Style", selection: $sneakPeekStyles) {
                     ForEach(SneakPeekStyle.allCases) { style in
-                        Text(style.rawValue).tag(style)
+                        Text(LocalizedStringKey(style.rawValue)).tag(style)
                     }
                 }
                 HStack {
@@ -816,14 +828,15 @@ struct Appearance: View {
                 Defaults.Toggle(key: .coloredSpectrogram) {
                     Text("Colored spectrogram")
                 }
-                Defaults
-                    .Toggle("Player tinting", key: .playerColorTinting)
+                Defaults.Toggle(key: .playerColorTinting) {
+                    Text("Player tinting")
+                }
                 Defaults.Toggle(key: .lightingEffect) {
                     Text("Enable blur effect behind album art")
                 }
                 Picker("Slider color", selection: $sliderColor) {
                     ForEach(SliderColorEnum.allCases, id: \.self) { option in
-                        Text(option.rawValue)
+                        Text(LocalizedStringKey(option.rawValue))
                     }
                 }
             } header: {

@@ -7,21 +7,6 @@ import ClaudeMonitorKit
 import Defaults
 import SwiftUI
 
-struct ClaudeActivityDot: View {
-    let activity: ClaudeActivity
-    var size: CGFloat = 7
-    @State private var dimmed = false
-
-    var body: some View {
-        Circle()
-            .fill(activity == .needsAttention ? Color.red : Color.orange)
-            .frame(width: size, height: size)
-            .opacity(activity == .working && dimmed ? 0.35 : 1)
-            .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: dimmed)
-            .onAppear { dimmed = true }
-    }
-}
-
 struct ClaudeSessionsView: View {
     @ObservedObject private var monitor = ClaudeMonitor.app
 
@@ -69,7 +54,7 @@ private struct ClaudeApprovalCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
-                ClaudeActivityDot(activity: .needsAttention)
+                ClaudeSpinner(state: .waitingForApproval(tool: request.toolName))
                 Text("\(identity.map { "\(request.projectName) · \($0)" } ?? request.projectName) wants to use \(request.toolName)")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.white)
@@ -123,34 +108,20 @@ private struct ClaudeSessionRow: View {
     let session: ClaudeSession
     let identity: String?
 
-    private var activity: ClaudeActivity {
-        switch session.state {
-        case .working, .compacting: return .working
-        case .waitingForApproval, .failed: return .needsAttention
-        case .waitingForInput: return .none
-        }
-    }
-
     private var status: String {
         switch session.state {
-        case .waitingForInput: return "Ready"
-        case .working(let tool): return tool.map { "Running \($0)" } ?? "Working"
-        case .waitingForApproval(let tool): return tool.map { "Needs approval for \($0)" } ?? "Needs your input"
-        case .compacting: return "Compacting conversation"
-        case .failed(let reason): return reason.map { "Failed: \($0)" } ?? "Failed"
+        case .waitingForInput: return String(localized: "Ready")
+        case .working(let tool): return tool.map { String(localized: "Running \($0)") } ?? String(localized: "Working")
+        case .waitingForApproval(let tool): return tool.map { String(localized: "Needs approval for \($0)") } ?? String(localized: "Needs your input")
+        case .compacting: return String(localized: "Compacting conversation")
+        case .failed(let reason): return reason.map { String(localized: "Failed: \($0)") } ?? String(localized: "Failed")
         }
     }
 
     var body: some View {
         HStack(spacing: 10) {
-            Group {
-                if activity == .none {
-                    Circle().fill(.gray.opacity(0.5)).frame(width: 7, height: 7)
-                } else {
-                    ClaudeActivityDot(activity: activity)
-                }
-            }
-            .frame(width: 10)
+            ClaudeSpinner(state: session.state)
+                .frame(width: 14)
 
             VStack(alignment: .leading, spacing: 1) {
                 HStack(spacing: 6) {

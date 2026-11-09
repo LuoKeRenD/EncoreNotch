@@ -397,3 +397,201 @@ final class LyricsOffsetTests: XCTestCase {
         XCTAssertEqual(sut.trackOffset, 0)
     }
 }
+
+final class TitleOnlyFallbackTests: XCTestCase {
+    private func provider(withArtist: String = "[]", titleOnly: String) -> LRCLIBProvider {
+        LRCLIBProvider { request in
+            guard request.url!.lastPathComponent == "search" else { return (Data(), 404) }
+            let names = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)?.queryItems?.map(\.name) ?? []
+            return (Data((names.contains("artist_name") ? withArtist : titleOnly).utf8), 200)
+        }
+    }
+
+    func testNonLatinTitleFindsEntryFiledUnderAnotherArtistName() async throws {
+        let result = try await provider(titleOnly: #"[{"duration":231,"plainLyrics":"words"}]"#)
+            .lyrics(for: TrackQuery(title: "泡沫の夢", artist: "ハコニワリリィ", duration: 230))
+        XCTAssertEqual(result, .plain("words"))
+    }
+
+    func testTitleOnlyRejectsDifferentLength() async throws {
+        let result = try await provider(titleOnly: #"[{"duration":265,"syncedLyrics":"[00:01.00]cover"}]"#)
+            .lyrics(for: TrackQuery(title: "泡沫の夢", artist: "ハコニワリリィ", duration: 230))
+        XCTAssertNil(result)
+    }
+
+    func testTitleOnlyIsStricterThanArtistSearch() async throws {
+        let result = try await provider(titleOnly: #"[{"duration":234,"plainLyrics":"words"}]"#)
+            .lyrics(for: TrackQuery(title: "泡沫の夢", artist: "ハコニワリリィ", duration: 230))
+        XCTAssertNil(result)
+    }
+
+    func testLatinTitlesNeverUseTitleOnly() async throws {
+        let result = try await provider(titleOnly: #"[{"duration":200,"plainLyrics":"someone else's song"}]"#)
+            .lyrics(for: TrackQuery(title: "Home", artist: "Band", duration: 200))
+        XCTAssertNil(result)
+    }
+
+    func testTitleOnlyNeedsAKnownDuration() async throws {
+        let result = try await provider(titleOnly: #"[{"duration":200,"plainLyrics":"words"}]"#)
+            .lyrics(for: TrackQuery(title: "泡沫の夢", artist: "ハコニワリリィ"))
+        XCTAssertNil(result)
+    }
+
+    func testArtistMatchIsPreferredOverTitleOnly() async throws {
+        let result = try await provider(
+            withArtist: #"[{"duration":230,"plainLyrics":"by artist"}]"#,
+            titleOnly: #"[{"duration":230,"syncedLyrics":"[00:01.00]other"}]"#
+        ).lyrics(for: TrackQuery(title: "泡沫の夢", artist: "ハコニワリリィ", duration: 230))
+        XCTAssertEqual(result, .plain("by artist"))
+    }
+}
+
+final class ManualSearchTests: XCTestCase {
+    private let body = #"""
+    [{"id":1,"trackName":"Plain","artistName":"A","albumName":"X","duration":200,"plainLyrics":"p"},
+     {"id":2,"trackName":"Far","artistName":"B","albumName":"Y","duration":300,"syncedLyrics":"[00:01.00]far"},
+     {"id":3,"trackName":"Near","artistName":"C","albumName":"Z","duration":201,"syncedLyrics":"[00:01.00]near"},
+     {"id":4,"trackName":"Empty","artistName":"D","albumName":"W","duration":200}]
+    """#
+
+    func testOrdersByTimingThenDurationAndDropsEmptyEntries() async throws {
+        let body = self.body
+        let results = try await LRCLIBProvider { _ in (Data(body.utf8), 200) }
+            .search(title: "Song", artist: "", duration: 200)
+        XCTAssertEqual(results.map(\.title), ["Near", "Far", "Plain"])
+        XCTAssertEqual(results[0].artist, "C")
+    }
+
+    func testEmptyFieldsAreLeftOutOfTheQuery() async throws {
+        let recorder = Recorder()
+        _ = try await LRCLIBProvider { request in
+            recorder.add(request.url!)
+            return (Data("[]".utf8), 200)
+        }.search(title: "  ", artist: " Band ")
+        XCTAssertEqual(recorder.last?.queryItems?.map(\.name), ["artist_name"])
+        XCTAssertEqual(recorder.last?.queryItems?.first?.value, "Band")
+    }
+
+    func testNothingToSearchSkipsTheNetwork() async throws {
+        let results = try await LRCLIBProvider { _ in
+            XCTFail("should not search")
+            return (Data(), 200)
+        }.search(title: " ", artist: "")
+        XCTAssertTrue(results.isEmpty)
+    }
+}
+
+final class UserTextTests: XCTestCase {
+    func testTimedTextBecomesSynced() {
+        XCTAssertEqual(Lyrics(userText: "[00:01.00]a\n[00:02.00]b"), .synced([LyricLine(start: 1, text: "a"), LyricLine(start: 2, text: "b")]))
+    }
+
+    func testUntimedTextBecomesPlain() {
+        XCTAssertEqual(Lyrics(userText: "\n line one\nline two \n"), .plain("line one\nline two"))
+    }
+
+    func testTagsWithNoLyricsAreNotSynced() {
+        XCTAssertEqual(Lyrics(userText: "[ar:Band]\nwords"), .plain("[ar:Band]\nwords"))
+    }
+
+    func testBlankTextIsNothing() {
+        XCTAssertNil(Lyrics(userText: " \n "))
+    }
+}
+
+@MainActor
+final class UserLyricsControllerTests: XCTestCase {
+    private var directory: URL!
+    private var defaults: UserDefaults!
+    private var suite: String!
+    private let song = TrackQuery(title: "Song", artist: "Band")
+    private let automatic = Lyrics.plain("automatic")
+    private let mine = Lyrics.plain("mine")
+
+    private struct Fixed: LyricsProvider {
+        let result: Lyrics?
+        func lyrics(for query: TrackQuery) async throws -> Lyrics? { result }
+    }
+
+    override func setUp() async throws {
+        directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        suite = UUID().uuidString
+        defaults = UserDefaults(suiteName: suite)
+    }
+
+    override func tearDown() async throws {
+        try? FileManager.default.removeItem(at: directory)
+        defaults.removePersistentDomain(forName: suite)
+    }
+
+    private func make(_ result: Lyrics?) -> LyricsController {
+        LyricsController(
+            provider: Fixed(result: result), settleDelay: .milliseconds(1), retryDelay: .milliseconds(1),
+            defaults: defaults, userStore: UserLyricsStore(directory: directory)
+        )
+    }
+
+    private func settle(_ sut: LyricsController) async {
+        for _ in 0..<400 where sut.status == .loading {
+            try? await Task.sleep(for: .milliseconds(5))
+        }
+    }
+
+    func testSavedLyricsReplaceCurrentAndSurviveRelaunch() async {
+        let first = make(nil)
+        first.setTrack(song)
+        await settle(first)
+        XCTAssertEqual(first.status, .notFound)
+
+        first.saveUserLyrics(mine)
+        XCTAssertEqual(first.status, .loaded(mine))
+        XCTAssertTrue(first.hasUserLyrics)
+
+        let relaunched = make(automatic)
+        relaunched.setTrack(song)
+        await settle(relaunched)
+        XCTAssertEqual(relaunched.status, .loaded(mine))
+        XCTAssertTrue(relaunched.hasUserLyrics)
+    }
+
+    func testRemovingReturnsToAutomaticLookup() async {
+        let sut = make(automatic)
+        sut.setTrack(song)
+        await settle(sut)
+        sut.saveUserLyrics(mine)
+        sut.removeUserLyrics()
+        XCTAssertFalse(sut.hasUserLyrics)
+        await settle(sut)
+        XCTAssertEqual(sut.status, .loaded(automatic))
+    }
+
+    func testOtherTracksAreUnaffected() async {
+        let sut = make(automatic)
+        sut.setTrack(song)
+        await settle(sut)
+        sut.saveUserLyrics(mine)
+        sut.setTrack(TrackQuery(title: "Other", artist: "Band"))
+        XCTAssertFalse(sut.hasUserLyrics)
+        await settle(sut)
+        XCTAssertEqual(sut.status, .loaded(automatic))
+    }
+
+    func testPendingLookupCannotOverwriteSavedLyrics() async {
+        let sut = LyricsController(
+            provider: Fixed(result: automatic), settleDelay: .milliseconds(30), retryDelay: .milliseconds(1),
+            defaults: defaults, userStore: UserLyricsStore(directory: directory)
+        )
+        sut.setTrack(song)
+        sut.saveUserLyrics(mine)
+        try? await Task.sleep(for: .milliseconds(80))
+        XCTAssertEqual(sut.status, .loaded(mine))
+    }
+
+    func testCurrentTrackKeepsLatestMetadata() {
+        let sut = make(nil)
+        sut.setTrack(song)
+        let fuller = TrackQuery(title: "Song", artist: "Band", album: "LP", duration: 200)
+        sut.setTrack(fuller)
+        XCTAssertEqual(sut.currentTrack, fuller)
+    }
+}

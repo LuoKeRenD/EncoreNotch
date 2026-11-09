@@ -495,7 +495,7 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "%.0f 秒"
           }
         }
@@ -1495,8 +1495,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "首选颜色"
+            "state" : "translated",
+            "value" : "强调色"
           }
         }
       }
@@ -2196,8 +2196,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Advanced"
+            "state" : "translated",
+            "value" : "高级"
           }
         }
       }
@@ -4396,8 +4396,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Change media with horizontal gestures"
+            "state" : "translated",
+            "value" : "横向手势切换歌曲"
           }
         }
       }
@@ -4896,8 +4896,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Choose any color"
+            "state" : "translated",
+            "value" : "选择任意颜色"
           }
         }
       }
@@ -4996,8 +4996,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : ""
+            "state" : "translated",
+            "value" : "选择使用系统强调色，或自定义颜色。"
           }
         }
       }
@@ -5096,8 +5096,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Choose which service to use when sharing files from the shelf. Click the shelf button to select files, or drag files onto it to share immediately."
+            "state" : "translated",
+            "value" : "选择从暂存器共享文件时使用的服务。点击暂存器按钮可选择文件，也可以将文件拖到上面立即共享。"
           }
         }
       }
@@ -5296,8 +5296,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Clear slot"
+            "state" : "translated",
+            "value" : "清空槽位"
           }
         }
       }
@@ -5696,8 +5696,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Color Presets"
+            "state" : "translated",
+            "value" : "预设颜色"
           }
         }
       }
@@ -5796,8 +5796,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Colored spectrogram"
+            "state" : "translated",
+            "value" : "彩色频谱"
           }
         }
       }
@@ -6096,8 +6096,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Copy items on drag"
+            "state" : "translated",
+            "value" : "拖动时复制项目"
           }
         }
       }
@@ -6296,8 +6296,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Currently selected: %@"
+            "state" : "translated",
+            "value" : "当前选择：%@"
           }
         }
       }
@@ -6396,8 +6396,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Custom"
+            "state" : "translated",
+            "value" : "自定义"
           }
         }
       }
@@ -6496,7 +6496,7 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "自定义高度"
           }
         }
@@ -6696,8 +6696,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "自定义Notch大小 - %.0f"
+            "state" : "translated",
+            "value" : "自定义刘海高度 - %.0f"
           }
         }
       }
@@ -6996,8 +6996,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Customize which controls appear in the music player. Volume expands when active."
+            "state" : "translated",
+            "value" : "自定义音乐播放器中显示的控件。音量控件启用时会展开。"
           }
         }
       }
@@ -7096,7 +7096,7 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "默认"
           }
         }
@@ -7700,8 +7700,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Drag a control onto a slot"
+            "state" : "translated",
+            "value" : "将控件拖到槽位上"
           }
         }
       }
@@ -7800,8 +7800,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Drag items in the preview to reorder or drop from the palette"
+            "state" : "translated",
+            "value" : "在预览中拖动以调整顺序，或从下方拖入控件"
           }
         }
       }
@@ -8701,8 +8701,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable haptic feedback"
+            "state" : "translated",
+            "value" : "启用触感反馈"
           }
         }
       }
@@ -9201,8 +9201,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Expanded drag detection area"
+            "state" : "translated",
+            "value" : "扩大拖放检测区域"
           }
         }
       }
@@ -9502,8 +9502,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Files dropped on the shelf will be shared via this service"
+            "state" : "translated",
+            "value" : "拖到暂存器上的文件将通过此服务共享"
           }
         }
       }
@@ -9702,8 +9702,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Full screen behavior"
+            "state" : "translated",
+            "value" : "全屏时的行为"
           }
         }
       }
@@ -10702,8 +10702,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hide for all apps"
+            "state" : "translated",
+            "value" : "所有应用全屏时隐藏"
           }
         }
       }
@@ -10802,8 +10802,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hide for media app only"
+            "state" : "translated",
+            "value" : "仅媒体应用全屏时隐藏"
           }
         }
       }
@@ -10902,8 +10902,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hide from screen recording"
+            "state" : "translated",
+            "value" : "在屏幕录制中隐藏"
           }
         }
       }
@@ -11002,8 +11002,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hide title bar"
+            "state" : "translated",
+            "value" : "隐藏标题栏"
           }
         }
       }
@@ -11302,8 +11302,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Hover delay"
+            "state" : "translated",
+            "value" : "悬停延迟"
           }
         }
       }
@@ -11802,7 +11802,7 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "内嵌"
           }
         }
@@ -12003,8 +12003,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Layout Preview"
+            "state" : "translated",
+            "value" : "布局预览"
           }
         }
       }
@@ -12703,8 +12703,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Match menu bar height"
+            "state" : "translated",
+            "value" : "匹配菜单栏高度"
           }
         }
       }
@@ -12803,7 +12803,7 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "匹配菜单栏高度"
           }
         }
@@ -12903,8 +12903,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Match real notch height"
+            "state" : "translated",
+            "value" : "匹配真实刘海高度"
           }
         }
       }
@@ -15304,8 +15304,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Notch height on non-notch displays"
+            "state" : "translated",
+            "value" : "无刘海显示器的高度"
           }
         }
       }
@@ -15404,8 +15404,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Notch height on notch displays"
+            "state" : "translated",
+            "value" : "带刘海显示器的高度"
           }
         }
       }
@@ -15504,8 +15504,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Notch sizing"
+            "state" : "translated",
+            "value" : "刘海尺寸"
           }
         }
       }
@@ -16204,8 +16204,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Pick a Color"
+            "state" : "translated",
+            "value" : "选择颜色"
           }
         }
       }
@@ -16404,8 +16404,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Preferred display"
+            "state" : "translated",
+            "value" : "首选显示器"
           }
         }
       }
@@ -16604,8 +16604,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Quick Share"
+            "state" : "translated",
+            "value" : "快速共享"
           }
         }
       }
@@ -16704,8 +16704,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Quick Share Service"
+            "state" : "translated",
+            "value" : "快速共享服务"
           }
         }
       }
@@ -17404,8 +17404,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Remove from shelf after dragging"
+            "state" : "translated",
+            "value" : "拖出后从暂存器移除"
           }
         }
       }
@@ -17804,8 +17804,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Reset to Defaults"
+            "state" : "translated",
+            "value" : "恢复默认"
           }
         }
       }
@@ -19106,8 +19106,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show cool face animation while inactive"
+            "state" : "translated",
+            "value" : "空闲时显示表情动画"
           }
         }
       }
@@ -19406,8 +19406,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show menu bar icon"
+            "state" : "translated",
+            "value" : "显示菜单栏图标"
           }
         }
       }
@@ -19506,8 +19506,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show music live activity"
+            "state" : "translated",
+            "value" : "显示音乐实时活动"
           }
         }
       }
@@ -19606,8 +19606,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show notch on lock screen"
+            "state" : "translated",
+            "value" : "在锁定屏幕上显示刘海"
           }
         }
       }
@@ -20106,8 +20106,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show settings icon in notch"
+            "state" : "translated",
+            "value" : "在刘海中显示设置图标"
           }
         }
       }
@@ -20206,8 +20206,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Show sneak peek on playback changes"
+            "state" : "translated",
+            "value" : "播放变化时显示预览"
           }
         }
       }
@@ -21108,8 +21108,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "System"
+            "state" : "translated",
+            "value" : "系统"
           }
         }
       }
@@ -22409,8 +22409,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Use your macOS system accent color"
+            "state" : "translated",
+            "value" : "使用 macOS 系统强调色"
           }
         }
       }
@@ -22509,8 +22509,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Using System Accent"
+            "state" : "translated",
+            "value" : "正在使用系统强调色"
           }
         }
       }
@@ -23109,8 +23109,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Window Appearance"
+            "state" : "translated",
+            "value" : "窗口外观"
           }
         }
       }
@@ -23209,8 +23209,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Window Behavior"
+            "state" : "translated",
+            "value" : "窗口行为"
           }
         }
       }
@@ -23509,8 +23509,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Your macOS system accent color"
+            "state" : "translated",
+            "value" : "你的 macOS 系统强调色"
           }
         }
       }
@@ -23611,6 +23611,919 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "YouTube 音乐需要安装此第三方应用程序： "
+          }
+        }
+      }
+    },
+    "%@ wants to use %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ 想要使用 %2$@"
+          }
+        }
+      }
+    },
+    "Add Lyrics…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加歌词…"
+          }
+        }
+      }
+    },
+    "Adds hook entries to %@. Your other settings and hooks are kept, but the file is rewritten with sorted keys." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "会向 %@ 添加 hook 条目。你的其他设置和 hook 都会保留，但文件会按键名重新排序。"
+          }
+        }
+      }
+    },
+    "Allow once" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允许一次"
+          }
+        }
+      }
+    },
+    "Approve permission requests from the notch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在刘海上批准权限请求"
+          }
+        }
+      }
+    },
+    "Artist" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "艺人"
+          }
+        }
+      }
+    },
+    "Based on Boring Notch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基于 Boring Notch"
+          }
+        }
+      }
+    },
+    "Clear Saved Lyrics" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除已保存的歌词"
+          }
+        }
+      }
+    },
+    "Compacting conversation" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在压缩对话"
+          }
+        }
+      }
+    },
+    "Could not search. Check your connection and try again." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索失败，请检查网络后重试。"
+          }
+        }
+      }
+    },
+    "Deny" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拒绝"
+          }
+        }
+      }
+    },
+    "Edit Lyrics" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑歌词"
+          }
+        }
+      }
+    },
+    "Edit Lyrics…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑歌词…"
+          }
+        }
+      }
+    },
+    "Edit lyrics for this song" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑这首歌的歌词"
+          }
+        }
+      }
+    },
+    "Failed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "失败"
+          }
+        }
+      }
+    },
+    "Failed: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "失败：%@"
+          }
+        }
+      }
+    },
+    "Follow System" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "跟随系统"
+          }
+        }
+      }
+    },
+    "Home" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主页"
+          }
+        }
+      }
+    },
+    "Import File…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导入文件…"
+          }
+        }
+      }
+    },
+    "Instrumental" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "纯音乐"
+          }
+        }
+      }
+    },
+    "Language" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语言"
+          }
+        }
+      }
+    },
+    "Line" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "逐行"
+          }
+        }
+      }
+    },
+    "Loading lyrics…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在加载歌词…"
+          }
+        }
+      }
+    },
+    "Lyrics" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "歌词"
+          }
+        }
+      }
+    },
+    "Lyrics offset: %@s" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "歌词偏移：%@ 秒"
+          }
+        }
+      }
+    },
+    "Lyrics unavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "歌词暂不可用"
+          }
+        }
+      }
+    },
+    "LyricsIsland is a modified version of Boring Notch by TheBoredTeam, licensed under GPL-3.0." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LyricsIsland 是 TheBoredTeam 开发的 Boring Notch 的修改版本，以 GPL-3.0 许可发布。"
+          }
+        }
+      }
+    },
+    "Monitoring" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "监控"
+          }
+        }
+      }
+    },
+    "Needs approval for %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 需要批准"
+          }
+        }
+      }
+    },
+    "Needs your input" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要你操作"
+          }
+        }
+      }
+    },
+    "No active Claude Code sessions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有活跃的 Claude Code 会话"
+          }
+        }
+      }
+    },
+    "No lyrics found" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未找到歌词"
+          }
+        }
+      }
+    },
+    "No results. Try the title in its original language, or leave the artist empty." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有结果。可以试试原语言的歌名，或者把艺人留空。"
+          }
+        }
+      }
+    },
+    "Nothing is playing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前没有播放歌曲"
+          }
+        }
+      }
+    },
+    "Open Lyrics Window" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开歌词窗口"
+          }
+        }
+      }
+    },
+    "Open the lyrics window" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开歌词窗口"
+          }
+        }
+      }
+    },
+    "Paste" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "粘贴"
+          }
+        }
+      }
+    },
+    "Paste LRC text with timestamps for synced lyrics, or plain text." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "粘贴带时间标签的 LRC 可以同步显示，也可以粘贴纯文本。"
+          }
+        }
+      }
+    },
+    "Positive shows lyrics earlier. Hover the lyrics in the notch to adjust one song." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正值让歌词提前显示。将鼠标移到岛上的歌词可单独调整某首歌。"
+          }
+        }
+      }
+    },
+    "Ready" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "就绪"
+          }
+        }
+      }
+    },
+    "Remove My Lyrics" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除我的歌词"
+          }
+        }
+      }
+    },
+    "Reset this song's offset" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重置这首歌的偏移"
+          }
+        }
+      }
+    },
+    "Restart LyricsIsland" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重启 LyricsIsland"
+          }
+        }
+      }
+    },
+    "Running %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在运行 %@"
+          }
+        }
+      }
+    },
+    "Save" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存"
+          }
+        }
+      }
+    },
+    "Search" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索"
+          }
+        }
+      }
+    },
+    "Search Online" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在线搜索"
+          }
+        }
+      }
+    },
+    "Show Lyrics Window" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示歌词窗口"
+          }
+        }
+      }
+    },
+    "Show live Claude Code sessions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示 Claude Code 实时会话"
+          }
+        }
+      }
+    },
+    "Show lyrics" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示歌词"
+          }
+        }
+      }
+    },
+    "Show lyrics earlier for this song" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "让这首歌的歌词提前显示"
+          }
+        }
+      }
+    },
+    "Show lyrics later for this song" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "让这首歌的歌词延后显示"
+          }
+        }
+      }
+    },
+    "Show the current line below the closed notch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在收起的刘海下方显示当前歌词"
+          }
+        }
+      }
+    },
+    "Text" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文本"
+          }
+        }
+      }
+    },
+    "The original file is backed up to %@ before each change. Turning this off removes only the entries added here." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每次修改前，原文件都会备份到 %@。关闭此功能时只会移除这里添加的条目。"
+          }
+        }
+      }
+    },
+    "These lyrics have line timing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这份歌词带逐行时间"
+          }
+        }
+      }
+    },
+    "These lyrics have word timing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这份歌词带逐字时间"
+          }
+        }
+      }
+    },
+    "This song is using lyrics you chose." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这首歌正在使用你选择的歌词。"
+          }
+        }
+      }
+    },
+    "Title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "歌名"
+          }
+        }
+      }
+    },
+    "Use" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用"
+          }
+        }
+      }
+    },
+    "What this changes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这会改动什么"
+          }
+        }
+      }
+    },
+    "With notch approvals off, hooks only report session activity and never approve or block anything. Hooks do nothing while this app is not running." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭刘海批准时，hook 只上报会话状态，不会批准或拦截任何操作。本应用未运行时，hook 不起作用。"
+          }
+        }
+      }
+    },
+    "With notch approvals on, a permission request waits up to 90 seconds for your answer in the notch and opens it automatically. Clicking Allow once runs the action shown. Without an answer, Claude Code's normal permission prompt takes over. Deny rules still apply." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开启刘海批准后，权限请求会自动展开刘海，并最多等待你 90 秒。点击“允许一次”会执行显示的操作。如果没有回应，将转回 Claude Code 原有的授权流程。拒绝规则依然有效。"
+          }
+        }
+      }
+    },
+    "Word" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "逐字"
+          }
+        }
+      }
+    },
+    "Working" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行中"
+          }
+        }
+      }
+    },
+    "Launch at login" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "登录时启动"
+          }
+        }
+      }
+    },
+    "Player tinting" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放器着色"
+          }
+        }
+      }
+    },
+    "Shuffle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "随机播放"
+          }
+        }
+      }
+    },
+    "Previous" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上一首"
+          }
+        }
+      }
+    },
+    "Play/Pause" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放/暂停"
+          }
+        }
+      }
+    },
+    "Next" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下一首"
+          }
+        }
+      }
+    },
+    "Repeat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "循环播放"
+          }
+        }
+      }
+    },
+    "Volume" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音量"
+          }
+        }
+      }
+    },
+    "Favorite" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收藏"
+          }
+        }
+      }
+    },
+    "Backward 15s" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "后退 15 秒"
+          }
+        }
+      }
+    },
+    "Forward 15s" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "前进 15 秒"
+          }
+        }
+      }
+    },
+    "Empty slot" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空槽位"
+          }
+        }
+      }
+    },
+    "White" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "白色"
+          }
+        }
+      }
+    },
+    "Match album art" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匹配专辑封面"
+          }
+        }
+      }
+    },
+    "Connects directly to the Spotify app." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "直接连接 Spotify 应用。"
+          }
+        }
+      }
+    },
+    "Connects directly to the Apple Music app." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "直接连接 Apple Music 应用。"
+          }
+        }
+      }
+    },
+    "Requires a third-party client with API plugin enabled." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要已启用 API 插件的第三方客户端。"
+          }
+        }
+      }
+    },
+    "Works with most media apps, including browsers, to detect what's playing. Note: This may be removed in a future macOS version." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "适用于大多数媒体应用（包括浏览器），可检测正在播放的内容。注意：在部分 macOS 版本上可能不可用。"
           }
         }
       }

@@ -92,7 +92,7 @@ struct ControllerOptionView: View {
                     .font(.headline)
                     .fontWeight(.semibold)
 
-                Text(controller.description)
+                Text(LocalizedStringKey(controller.description))
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                 

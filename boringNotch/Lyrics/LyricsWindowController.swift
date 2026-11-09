@@ -136,7 +136,7 @@ final class LyricsWindowController: NSObject {
             backing: .buffered,
             defer: false
         )
-        window.title = "Lyrics"
+        window.title = String(localized: "Lyrics")
         window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
         window.appearance = NSAppearance(named: .darkAqua)
@@ -208,13 +208,13 @@ final class LyricsWindowController: NSObject {
         case .idle:
             call("setMessage(text)", ["text": ""])
         case .loading:
-            call("setMessage(text)", ["text": "Loading lyrics…"])
+            call("setMessage(text)", ["text": String(localized: "Loading lyrics…")])
         case .notFound:
-            call("setMessage(text)", ["text": "No lyrics found"])
+            call("setMessage(text)", ["text": String(localized: "No lyrics found")])
         case .failed:
-            call("setMessage(text)", ["text": "Lyrics unavailable"])
+            call("setMessage(text)", ["text": String(localized: "Lyrics unavailable")])
         case .loaded(.instrumental):
-            call("setMessage(text)", ["text": "Instrumental"])
+            call("setMessage(text)", ["text": String(localized: "Instrumental")])
         case .loaded(.plain(let text)):
             call("setPlain(text)", ["text": text])
         case .loaded(.synced(let lines)):

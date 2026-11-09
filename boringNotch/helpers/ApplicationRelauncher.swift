@@ -9,12 +9,10 @@ import AppKit
 
 enum ApplicationRelauncher {
     static func restart() {
-        guard let bundleIdentifier = Bundle.main.bundleIdentifier else { return }
-
         let workspace = NSWorkspace.shared
 
-        guard let appURL = workspace.urlForApplication(withBundleIdentifier: bundleIdentifier)
-        else { return }
+        // This copy, in case several builds of the app exist on the machine.
+        let appURL = Bundle.main.bundleURL
 
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.createsNewApplicationInstance = true

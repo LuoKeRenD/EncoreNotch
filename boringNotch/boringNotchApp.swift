@@ -25,6 +25,11 @@ struct DynamicNotchApp: App {
                 }
             }
             .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
+            Button("Edit Lyrics…") {
+                DispatchQueue.main.async {
+                    LyricsEditorWindowController.shared.show()
+                }
+            }
             Button("Show Lyrics Window") {
                 DispatchQueue.main.async {
                     LyricsWindowController.shared.show()

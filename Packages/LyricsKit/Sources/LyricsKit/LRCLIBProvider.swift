@@ -4,6 +4,16 @@ public enum LyricsError: Error, Equatable {
     case badStatus(Int)
 }
 
+/// One entry from a search the user runs by hand.
+public struct LyricsSearchResult: Identifiable, Equatable, Sendable {
+    public let id: Int
+    public let title: String
+    public let artist: String
+    public let album: String
+    public let duration: TimeInterval?
+    public let lyrics: Lyrics
+}
+
 public struct LRCLIBProvider: LyricsProvider {
     public typealias Transport = @Sendable (URLRequest) async throws -> (Data, Int)
 
@@ -12,6 +22,8 @@ public struct LRCLIBProvider: LyricsProvider {
 
     /// A different recording of the song would be out of time with its lyrics.
     private let durationTolerance: TimeInterval = 5
+    /// Tighter, because without the artist the length is the only other evidence.
+    private let titleOnlyDurationTolerance: TimeInterval = 3
 
     public init(transport: Transport? = nil) {
         self.transport = transport ?? { request in
@@ -21,6 +33,10 @@ public struct LRCLIBProvider: LyricsProvider {
     }
 
     private struct Record: Decodable {
+        let id: Int?
+        let trackName: String?
+        let artistName: String?
+        let albumName: String?
         let duration: Double?
         let instrumental: Bool?
         let plainLyrics: String?
@@ -54,7 +70,43 @@ public struct LRCLIBProvider: LyricsProvider {
                 candidates += (try? await search(title: variant.title, artist: variant.artist)) ?? []
             }
         }
-        return best(of: candidates, for: query)
+
+        if let found = best(of: candidates, for: query, tolerance: durationTolerance) {
+            return found
+        }
+
+        // Non-Latin titles are often filed under a romanized or translated artist.
+        // Latin titles repeat too often across songs to trust a match on length.
+        guard query.duration > 0, !query.title.allSatisfy(\.isASCII) else { return nil }
+        let titleMatches = (try? await search(title: query.title, artist: "")) ?? []
+        return best(of: titleMatches, for: query, tolerance: titleOnlyDurationTolerance)
+    }
+
+    /// Searches for the user to pick from. Either field may be empty. Results
+    /// are ordered by timing detail, then by closeness to `duration` when known.
+    public func search(title: String, artist: String, duration: TimeInterval = 0) async throws -> [LyricsSearchResult] {
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedArtist = artist.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedTitle.isEmpty || !trimmedArtist.isEmpty else { return [] }
+
+        func difference(_ result: LyricsSearchResult) -> TimeInterval {
+            guard duration > 0, let length = result.duration else { return 0 }
+            return abs(length - duration)
+        }
+        return try await search(title: trimmedTitle, artist: trimmedArtist)
+            .enumerated()
+            .compactMap { index, record -> LyricsSearchResult? in
+                guard let lyrics = convert(record) else { return nil }
+                return LyricsSearchResult(
+                    id: record.id ?? -index - 1,
+                    title: record.trackName ?? "",
+                    artist: record.artistName ?? "",
+                    album: record.albumName ?? "",
+                    duration: record.duration,
+                    lyrics: lyrics
+                )
+            }
+            .sorted { (Self.tier($0.lyrics), difference($0)) < (Self.tier($1.lyrics), difference($1)) }
     }
 
     /// The query rewritten in Simplified and in Traditional Chinese, leaving
@@ -100,22 +152,23 @@ public struct LRCLIBProvider: LyricsProvider {
         return nil
     }
 
-    private func best(of records: [Record], for query: TrackQuery) -> Lyrics? {
+    private static func tier(_ lyrics: Lyrics) -> Int {
+        switch lyrics {
+        case .synced: return lyrics.hasWordTiming ? 0 : 1
+        case .plain: return 2
+        case .instrumental: return 3
+        }
+    }
+
+    private func best(of records: [Record], for query: TrackQuery, tolerance: TimeInterval) -> Lyrics? {
         func difference(_ record: Record) -> TimeInterval {
             guard query.duration > 0, let duration = record.duration else { return 0 }
             return abs(duration - query.duration)
         }
-        func tier(_ lyrics: Lyrics) -> Int {
-            switch lyrics {
-            case .synced: return lyrics.hasWordTiming ? 0 : 1
-            case .plain: return 2
-            case .instrumental: return 3
-            }
-        }
         return records
-            .filter { difference($0) <= durationTolerance }
+            .filter { difference($0) <= tolerance }
             .compactMap { record in convert(record).map { (lyrics: $0, difference: difference(record)) } }
-            .min { (tier($0.lyrics), $0.difference) < (tier($1.lyrics), $1.difference) }?
+            .min { (Self.tier($0.lyrics), $0.difference) < (Self.tier($1.lyrics), $1.difference) }?
             .lyrics
     }
 
@@ -130,10 +183,10 @@ public struct LRCLIBProvider: LyricsProvider {
     }
 
     private func search(title: String, artist: String) async throws -> [Record] {
-        let data = try await get("search", [
-            URLQueryItem(name: "track_name", value: title),
-            URLQueryItem(name: "artist_name", value: artist),
-        ])
+        var items: [URLQueryItem] = []
+        if !title.isEmpty { items.append(URLQueryItem(name: "track_name", value: title)) }
+        if !artist.isEmpty { items.append(URLQueryItem(name: "artist_name", value: artist)) }
+        let data = try await get("search", items)
         return try data.map { try JSONDecoder().decode([Record].self, from: $0) } ?? []
     }
 

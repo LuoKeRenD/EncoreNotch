@@ -25,6 +25,34 @@ struct CustomVisualizer: Codable, Hashable, Equatable, Defaults.Serializable {
     var speed: CGFloat = 1.0
 }
 
+enum AppLanguage: String, CaseIterable, Identifiable {
+    case system
+    case english = "en"
+    case simplifiedChinese = "zh-Hans"
+
+    var id: String { rawValue }
+
+    private static let key = "AppleLanguages"
+
+    /// Reads this app's own setting, not the list inherited from the system.
+    static var current: AppLanguage {
+        guard let domain = Bundle.main.bundleIdentifier,
+              let languages = UserDefaults.standard.persistentDomain(forName: domain)?[key] as? [String],
+              let first = languages.first
+        else { return .system }
+        return AppLanguage(rawValue: first) ?? .system
+    }
+
+    /// Takes effect the next time the app launches.
+    func apply() {
+        if self == .system {
+            UserDefaults.standard.removeObject(forKey: Self.key)
+        } else {
+            UserDefaults.standard.set([rawValue], forKey: Self.key)
+        }
+    }
+}
+
 enum HideNotchOption: String, Defaults.Serializable {
     case always
     case nowPlayingOnly

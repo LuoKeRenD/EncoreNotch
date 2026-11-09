@@ -18,6 +18,9 @@ public final class LyricsController: ObservableObject {
     @Published public private(set) var trackOffset: TimeInterval = 0
     /// Changes on each seek, so views redraw even while playback is paused.
     @Published public private(set) var seekCount = 0
+    /// The track being followed, with the most complete metadata seen so far.
+    @Published public private(set) var currentTrack: TrackQuery?
+    @Published public private(set) var hasUserLyrics = false
 
     public static let offsetRange: ClosedRange<TimeInterval> = -5...5
     private static let globalOffsetKey = "lyricsGlobalOffset"
@@ -29,7 +32,7 @@ public final class LyricsController: ObservableObject {
     private let retryDelay: Duration
     private var clock = PlaybackClock()
     private var trackKey: String?
-    private var pendingQuery: TrackQuery?
+    private let userStore: UserLyricsStore?
     private var loadTask: Task<Void, Never>?
     private var lastSample: (position: TimeInterval, stamp: Date, rate: Double, isPlaying: Bool)?
     private var seekHold: (position: TimeInterval, until: TimeInterval)?
@@ -42,9 +45,11 @@ public final class LyricsController: ObservableObject {
         provider: any LyricsProvider,
         settleDelay: Duration = .milliseconds(300),
         retryDelay: Duration = .seconds(1),
-        defaults: UserDefaults = .standard
+        defaults: UserDefaults = .standard,
+        userStore: UserLyricsStore? = nil
     ) {
         self.provider = provider
+        self.userStore = userStore
         self.settleDelay = settleDelay
         self.retryDelay = retryDelay
         self.defaults = defaults
@@ -81,12 +86,13 @@ public final class LyricsController: ObservableObject {
         let key = query.map { "\($0.title)\u{1F}\($0.artist)".lowercased() }
         if key == trackKey {
             // Metadata often arrives piecemeal, so keep the most complete version.
-            if let query { pendingQuery = query }
+            if let query, query != currentTrack { currentTrack = query }
             return
         }
 
         trackKey = key
-        pendingQuery = query
+        currentTrack = query
+        hasUserLyrics = false
         loadTask?.cancel()
         clock = PlaybackClock()
         lastSample = nil
@@ -103,7 +109,13 @@ public final class LyricsController: ObservableObject {
 
     private func load() async {
         try? await Task.sleep(for: settleDelay)
-        guard !Task.isCancelled, let query = pendingQuery else { return }
+        guard !Task.isCancelled, let query = currentTrack else { return }
+
+        if let trackKey, let saved = userStore?.lyrics(forTrackKey: trackKey) {
+            hasUserLyrics = true
+            status = .loaded(saved)
+            return
+        }
 
         for attempt in 0..<2 {
             do {
@@ -118,6 +130,25 @@ public final class LyricsController: ObservableObject {
             }
         }
         status = .failed
+    }
+
+    /// Uses these lyrics for the current track from now on.
+    public func saveUserLyrics(_ lyrics: Lyrics) {
+        guard let trackKey else { return }
+        loadTask?.cancel()
+        userStore?.save(lyrics, forTrackKey: trackKey)
+        hasUserLyrics = true
+        status = .loaded(lyrics)
+    }
+
+    /// Forgets the user's lyrics and goes back to the automatic lookup.
+    public func removeUserLyrics() {
+        guard let trackKey else { return }
+        userStore?.remove(forTrackKey: trackKey)
+        hasUserLyrics = false
+        loadTask?.cancel()
+        status = .loading
+        loadTask = Task { [weak self] in await self?.load() }
     }
 
     /// Feeds a player sample into the clock. Updates that only changed

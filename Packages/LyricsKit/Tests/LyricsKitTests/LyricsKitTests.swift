@@ -154,7 +154,7 @@ final class PlaybackClockTests: XCTestCase {
     }
 }
 
-private final class Recorder: @unchecked Sendable {
+final class Recorder: @unchecked Sendable {
     private let lock = NSLock()
     private var urls: [URL] = []
     func add(_ url: URL) { lock.withLock { urls.append(url) } }

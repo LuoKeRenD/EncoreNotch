@@ -15,7 +15,11 @@ extension LyricsCache {
 
 extension LyricsController {
     @MainActor static let app = LyricsController(
-        provider: CachingLyricsProvider(source: LRCLIBProvider(), cache: .app)
+        provider: CachingLyricsProvider(source: LRCLIBProvider(), cache: .app),
+        userStore: UserLyricsStore(
+            directory: FileManager.default.homeDirectoryForCurrentUser
+                .appendingPathComponent("Library/Application Support/LyricsIsland/user-lyrics", isDirectory: true)
+        )
     )
 }
 
@@ -100,6 +104,11 @@ struct LyricsPanelView: View {
                 if isHovering, case .loaded(let loaded) = lyrics.status, case .synced = loaded {
                     LyricsOffsetControl(lyrics: lyrics, hasWordTiming: loaded.hasWordTiming)
                         .transition(.opacity)
+                } else if isHovering, case .loaded(.plain) = lyrics.status {
+                    LyricsEditButton()
+                        .padding(6)
+                        .background(Capsule().fill(.black.opacity(0.85)))
+                        .transition(.opacity)
                 }
             }
             // After the overlay, so moving onto the control still counts as hovering.
@@ -137,9 +146,9 @@ struct LyricsPanelView: View {
         case .loading:
             message("Loading lyrics…")
         case .notFound:
-            message("No lyrics found")
+            missingLyrics("No lyrics found")
         case .failed:
-            message("Lyrics unavailable")
+            missingLyrics("Lyrics unavailable")
         case .loaded(.instrumental):
             message("Instrumental")
         case .loaded(.plain(let text)):
@@ -165,7 +174,25 @@ struct LyricsPanelView: View {
         }
     }
 
-    private func message(_ text: String) -> some View {
+    private func missingLyrics(_ text: LocalizedStringKey) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            message(text)
+            Button {
+                LyricsEditorWindowController.shared.show()
+            } label: {
+                Text("Add Lyrics…")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(Capsule().fill(.white.opacity(0.14)))
+                    .contentShape(Capsule())
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private func message(_ text: LocalizedStringKey) -> some View {
         Text(text)
             .font(.subheadline)
             .foregroundStyle(.gray)
@@ -284,6 +311,21 @@ private struct ScrollingLyricText: View {
     }
 }
 
+private struct LyricsEditButton: View {
+    var body: some View {
+        Button {
+            LyricsEditorWindowController.shared.show()
+        } label: {
+            Image(systemName: "pencil")
+                .foregroundStyle(.white)
+                .frame(width: 16, height: 16)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help("Edit lyrics for this song")
+    }
+}
+
 private struct LyricsOffsetControl: View {
     @ObservedObject var lyrics: LyricsController
     let hasWordTiming: Bool
@@ -300,6 +342,8 @@ private struct LyricsOffsetControl: View {
             }
             .buttonStyle(.plain)
             .help("Open the lyrics window")
+
+            LyricsEditButton()
 
             Text(hasWordTiming ? "Word" : "Line")
                 .foregroundStyle(.gray)

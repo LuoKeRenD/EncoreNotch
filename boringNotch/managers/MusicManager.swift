@@ -75,6 +75,13 @@ class MusicManager: ObservableObject {
             }
             .store(in: &cancellables)
 
+        // Playback may have stopped or moved while the system was asleep.
+        NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didWakeNotification)
+            .sink { [weak self] _ in
+                self?.forceUpdate()
+            }
+            .store(in: &cancellables)
+
         // Initialize deprecation check asynchronously
         Task { @MainActor in
             do {
