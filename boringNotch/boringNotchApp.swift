@@ -5,6 +5,7 @@
 //  Created by Harsh Vardhan  Goswami  on 02/08/24.
 //
 
+import ClaudeMonitorKit
 import Combine
 import Defaults
 import KeyboardShortcuts
@@ -70,6 +71,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             screenUnlockedObserver = nil
         }
         MusicManager.shared.destroy()
+        ClaudeMonitor.app.suspend()
         cleanupDragDetectors()
         cleanupWindows()
     }
@@ -407,6 +409,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         setupDragDetectors()
+
+        if Defaults[.claudeMonitorEnabled] {
+            ClaudeMonitor.app.enable()
+        }
 
         if coordinator.firstLaunch {
             DispatchQueue.main.async {

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C1A0DE000000000000000003 /* ClaudeMonitorKit in Frameworks */ = {isa = PBXBuildFile; productRef = C1A0DE000000000000000002 /* ClaudeMonitorKit */; };
 		1100290C2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */; };
 		110029272E84FD4C00035A57 /* TemporaryFileStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */; };
 		1100292A2E8691B400035A57 /* FileShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029292E8691B400035A57 /* FileShareView.swift */; };
@@ -241,6 +242,7 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		C1A0DE000000000000000004 /* Claude */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Claude; sourceTree = "<group>"; };
 		112FB72F2CCF12CC0015238C /* private */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = private; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
@@ -253,6 +255,7 @@
 				9A987A102C73CA8D005CA465 /* Collections in Frameworks */,
 				1194E8852EA57D23009C82D6 /* SkyLightWindow in Frameworks */,
 				112B0EBB2E30DD5000562D6C /* MediaRemoteAdapter.framework in Frameworks */,
+				C1A0DE000000000000000003 /* ClaudeMonitorKit in Frameworks */,
 				111BEA6F2ED166E20079DD4E /* MacroVisionKit in Frameworks */,
 				11F748732EC9DA9300F841DB /* Lottie in Frameworks */,
 				14D0321A2C68F32E0096E6A1 /* LaunchAtLogin in Frameworks */,
@@ -444,6 +447,7 @@
 				14CEF41E2C5CAED400855D72 /* boringNotch.entitlements */,
 				14CEF41B2C5CAED400855D72 /* Preview Content */,
 				112FB72F2CCF12CC0015238C /* private */,
+				C1A0DE000000000000000004 /* Claude */,
 				11CC44A12CEE614100C7244B /* BoringViewCoordinator.swift */,
 			);
 			path = boringNotch;
@@ -616,11 +620,13 @@
 			);
 			fileSystemSynchronizedGroups = (
 				112FB72F2CCF12CC0015238C /* private */,
+				C1A0DE000000000000000004 /* Claude */,
 			);
 			name = boringNotch;
 			packageProductDependencies = (
 				14D032192C68F32E0096E6A1 /* LaunchAtLogin */,
 				B18654382C6F4990000B926A /* KeyboardShortcuts */,
+				C1A0DE000000000000000002 /* ClaudeMonitorKit */,
 				9A987A0F2C73CA8D005CA465 /* Collections */,
 				B19016212CC15B3D00E3F12E /* Defaults */,
 				B1628B912CC260C0003D8DF3 /* SwiftUIIntrospect */,
@@ -660,6 +666,7 @@
 			);
 			mainGroup = 14CEF4092C5CAED200855D72;
 			packageReferences = (
+				C1A0DE000000000000000001 /* XCLocalSwiftPackageReference "Packages/ClaudeMonitorKit" */,
 				14D032182C68F32E0096E6A1 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */,
 				B18654372C6F4990000B926A /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
 				9A987A0E2C73CA8D005CA465 /* XCRemoteSwiftPackageReference "swift-collections" */,
@@ -1048,6 +1055,13 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		C1A0DE000000000000000001 /* XCLocalSwiftPackageReference "Packages/ClaudeMonitorKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/ClaudeMonitorKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		111BEA6D2ED166E20079DD4E /* XCRemoteSwiftPackageReference "MacroVisionKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -1124,6 +1138,10 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		C1A0DE000000000000000002 /* ClaudeMonitorKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ClaudeMonitorKit;
+		};
 		111BEA502ECFBF7F0079DD4E /* MacroVisionKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MacroVisionKit;

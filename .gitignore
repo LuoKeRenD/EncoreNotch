@@ -53,3 +53,5 @@ build/
 *.xcarchive
 *.dSYM
 
+Packages/ClaudeMonitorKit/.build/
+Packages/ClaudeMonitorKit/.swiftpm/

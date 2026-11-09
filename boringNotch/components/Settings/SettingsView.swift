@@ -30,6 +30,9 @@ struct SettingsView: View {
                 NavigationLink(value: "Shelf") {
                     Label("Shelf", systemImage: "books.vertical")
                 }
+                NavigationLink(value: "Claude") {
+                    Label("Claude Code", systemImage: "terminal")
+                }
                 NavigationLink(value: "Shortcuts") {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
@@ -58,6 +61,8 @@ struct SettingsView: View {
                     Media()
                 case "Shelf":
                     Shelf()
+                case "Claude":
+                    ClaudeSettings()
                 case "Shortcuts":
                     Shortcuts()
                 case "Extensions":

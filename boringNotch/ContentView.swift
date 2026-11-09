@@ -6,6 +6,7 @@
 //  Modified by Richard Kunkli on 24/08/2024.
 //
 
+import ClaudeMonitorKit
 import Combine
 import Defaults
 import KeyboardShortcuts
@@ -18,6 +19,7 @@ struct ContentView: View {
 
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
+    @ObservedObject var claudeMonitor = ClaudeMonitor.app
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -53,6 +55,10 @@ struct ContentView: View {
         )
     }
 
+    private var showsClosedClaudeIndicator: Bool {
+        !coordinator.expandingView.show && vm.notchState == .closed && claudeMonitor.activity != .none && !vm.hideOnClosed
+    }
+
     private var computedChinWidth: CGFloat {
         var chinWidth: CGFloat = vm.closedNotchSize.width
 
@@ -60,6 +66,8 @@ struct ContentView: View {
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
         {
+            chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
+        } else if showsClosedClaudeIndicator {
             chinWidth += (2 * max(0, vm.effectiveClosedNotchHeight - 12) + 20)
         } else if !coordinator.expandingView.show && vm.notchState == .closed
             && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
@@ -226,6 +234,8 @@ struct ContentView: View {
                 if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                     MusicLiveActivity()
                         .frame(alignment: .center)
+                } else if showsClosedClaudeIndicator {
+                    ClaudeClosedIndicator()
                 } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed {
                     BoringFaceAnimation()
                 } else if vm.notchState == .open {
@@ -262,6 +272,8 @@ struct ContentView: View {
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
                     case .shelf:
                         ShelfView()
+                    case .claude:
+                        ClaudeSessionsView()
                     }
                 }
                 .transition(
@@ -275,6 +287,22 @@ struct ContentView: View {
             }
         }
         .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $vm.generalDropTargeting))
+    }
+
+    @ViewBuilder
+    func ClaudeClosedIndicator() -> some View {
+        let side = max(0, vm.effectiveClosedNotchHeight - 12)
+        HStack {
+            Rectangle()
+                .fill(.clear)
+                .frame(width: side, height: side)
+            Rectangle()
+                .fill(.black)
+                .frame(width: vm.closedNotchSize.width - 20)
+            ClaudeActivityDot(activity: claudeMonitor.activity)
+                .frame(width: side, height: side)
+        }
+        .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
     }
 
     @ViewBuilder
@@ -313,6 +341,12 @@ struct ContentView: View {
                     width: max(0, vm.effectiveClosedNotchHeight - 12),
                     height: max(0, vm.effectiveClosedNotchHeight - 12)
                 )
+                .overlay(alignment: .bottomTrailing) {
+                    if claudeMonitor.activity != .none {
+                        ClaudeActivityDot(activity: claudeMonitor.activity, size: 6)
+                            .offset(x: 2, y: 2)
+                    }
+                }
 
             Rectangle()
                 .fill(.black)
