@@ -16,6 +16,8 @@ public final class LyricsController: ObservableObject {
     /// Seconds added to the playback position, so positive shows lyrics earlier.
     @Published public private(set) var globalOffset: TimeInterval
     @Published public private(set) var trackOffset: TimeInterval = 0
+    /// Changes on each seek, so views redraw even while playback is paused.
+    @Published public private(set) var seekCount = 0
 
     public static let offsetRange: ClosedRange<TimeInterval> = -5...5
     private static let globalOffsetKey = "lyricsGlobalOffset"
@@ -30,6 +32,11 @@ public final class LyricsController: ObservableObject {
     private var pendingQuery: TrackQuery?
     private var loadTask: Task<Void, Never>?
     private var lastSample: (position: TimeInterval, stamp: Date, rate: Double, isPlaying: Bool)?
+    private var seekHold: (position: TimeInterval, until: TimeInterval)?
+
+    /// How long after a seek the player may still report its old position.
+    private static let seekHoldDuration: TimeInterval = 1.5
+    private static let seekMatchTolerance: TimeInterval = 1.5
 
     public init(
         provider: any LyricsProvider,
@@ -83,6 +90,7 @@ public final class LyricsController: ObservableObject {
         loadTask?.cancel()
         clock = PlaybackClock()
         lastSample = nil
+        seekHold = nil
         trackOffset = storedTrackOffset(for: key)
 
         guard query != nil else {
@@ -126,7 +134,6 @@ public final class LyricsController: ObservableObject {
            last.rate == rate, last.isPlaying == isPlaying {
             return
         }
-        lastSample = (position, stamp, rate, isPlaying)
 
         let current = PlaybackClock.currentPosition(
             reported: position,
@@ -134,11 +141,36 @@ public final class LyricsController: ObservableObject {
             rate: rate,
             isPlaying: isPlaying
         )
+
+        if let hold = seekHold {
+            if uptime >= hold.until {
+                seekHold = nil
+            } else if abs(current - hold.position) > Self.seekMatchTolerance {
+                // Still the position from before the seek.
+                return
+            }
+        }
+
+        lastSample = (position, stamp, rate, isPlaying)
         clock.ingest(position: current, rate: rate, isPlaying: isPlaying, at: uptime)
+    }
+
+    /// Moves to a seek target without waiting for the player to confirm it.
+    /// Some players report nothing new for a seek made while paused.
+    public func noteSeek(to position: TimeInterval, uptime: TimeInterval = ProcessInfo.processInfo.systemUptime) {
+        let target = Swift.max(0, position)
+        clock.seek(to: target, at: uptime)
+        seekHold = (target, uptime + Self.seekHoldDuration)
+        seekCount += 1
     }
 
     public func position(at uptime: TimeInterval = ProcessInfo.processInfo.systemUptime) -> TimeInterval {
         clock.position(at: uptime)
+    }
+
+    /// Where to seek the player so that a lyric at `time` is showing.
+    public func seekTarget(forLyricTime time: TimeInterval) -> TimeInterval {
+        Swift.max(0, time - globalOffset - trackOffset)
     }
 
     /// The position to look up lyrics with, including the user's offsets.

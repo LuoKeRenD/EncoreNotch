@@ -1,5 +1,5 @@
 > **LyricsIsland** is a modified version of [Boring Notch](https://github.com/TheBoredTeam/boring.notch) by TheBoredTeam, licensed under GPL-3.0.
-> Modified starting 2026-11-08: calendar, camera mirror, system HUDs, battery indicators, media key interception, the XPC helper and Sparkle updates were removed; lyrics are being added.
+> Modified starting 2026-11-08: calendar, camera mirror, system HUDs, battery indicators, media key interception, the XPC helper and Sparkle updates were removed; lyrics were added. The lyrics window bundles @applemusic-like-lyrics/core (AGPL-3.0-only); its source and build setup are in `LyricsWeb/`, and bundled licenses are in `boringNotch/Lyrics/LyricsWeb/THIRD_PARTY_LICENSES.txt`.
 > The text below is the upstream README.
 
 <h1 align="center">

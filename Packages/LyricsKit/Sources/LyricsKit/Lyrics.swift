@@ -77,6 +77,18 @@ extension Array where Element == LyricLine {
         return low == 0 ? nil : low - 1
     }
 
+    /// The index one sung line forward or back from `start`, skipping timed
+    /// gaps. Stays at `start` at either end of the lyrics.
+    public func sungIndex(from start: Int?, forward: Bool) -> Int? {
+        if forward {
+            let first = (start ?? -1) + 1
+            guard first < count else { return start }
+            return self[first...].firstIndex { !$0.text.isEmpty } ?? start
+        }
+        guard let start else { return firstIndex { !$0.text.isEmpty } }
+        return self[..<start].lastIndex { !$0.text.isEmpty } ?? start
+    }
+
     /// The last sung line before `index`, skipping timed gaps.
     public func previousSungLine(before index: Int?) -> LyricLine? {
         guard let index, index > 0 else { return nil }
@@ -88,6 +100,28 @@ extension Array where Element == LyricLine {
         let start = (index ?? -1) + 1
         guard start < count else { return nil }
         return self[start...].first { !$0.text.isEmpty }
+    }
+}
+
+/// Paces a line too long to show at once, so it finishes as the line does.
+public struct LyricScrollTiming: Equatable, Sendable {
+    /// Share of the line's duration to rest at each end, so the first and last
+    /// words stay readable.
+    static let restFraction = 0.15
+
+    public let scrollStart: TimeInterval
+    public let scrollEnd: TimeInterval
+
+    public init(lineStart: TimeInterval, lineEnd: TimeInterval) {
+        let duration = Swift.max(0, lineEnd - lineStart)
+        scrollStart = lineStart + duration * Self.restFraction
+        scrollEnd = lineEnd - duration * Self.restFraction
+    }
+
+    /// How far through the scroll `position` is, from 0 to 1.
+    public func fraction(at position: TimeInterval) -> Double {
+        guard scrollEnd > scrollStart else { return position >= scrollEnd ? 1 : 0 }
+        return Swift.min(1, Swift.max(0, (position - scrollStart) / (scrollEnd - scrollStart)))
     }
 }
 

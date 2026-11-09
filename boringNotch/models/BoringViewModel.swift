@@ -29,6 +29,7 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var hideOnClosed: Bool = true
 
     @Published var edgeAutoOpenActive: Bool = false
+    @Published var isHoveringLyrics: Bool = false
 
     @Published var screenUUID: String?
 

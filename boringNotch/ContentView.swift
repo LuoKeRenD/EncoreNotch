@@ -10,6 +10,7 @@ import ClaudeMonitorKit
 import Combine
 import Defaults
 import KeyboardShortcuts
+import LyricsKit
 import SwiftUI
 import SwiftUIIntrospect
 
@@ -34,6 +35,9 @@ struct ContentView: View {
     @Default(.useMusicVisualizer) var useMusicVisualizer
 
     @Default(.showNotHumanFace) var showNotHumanFace
+    @Default(.enableLyrics) var lyricsEnabled
+    @Default(.showLyricsInClosedNotch) var closedLyricsEnabled
+    @ObservedObject var lyrics = LyricsController.app
 
     // Shared interactive spring for movement/resizing to avoid conflicting animations
     private let animationSpring = Animation.interactiveSpring(response: 0.38, dampingFraction: 0.8, blendDuration: 0)
@@ -54,6 +58,14 @@ struct ContentView: View {
                 ? cornerRadiusInsets.opened.bottom
                 : cornerRadiusInsets.closed.bottom
         )
+    }
+
+    private var showsClosedLyric: Bool {
+        guard lyricsEnabled, closedLyricsEnabled, vm.notchState == .closed, !vm.hideOnClosed,
+              !coordinator.sneakPeek.show, musicManager.isPlaying || !musicManager.isPlayerIdle,
+              case .loaded(.synced) = lyrics.status
+        else { return false }
+        return true
     }
 
     private var showsClosedClaudeIndicator: Bool {
@@ -250,6 +262,12 @@ struct ContentView: View {
                     Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: vm.effectiveClosedNotchHeight)
                 }
 
+                if showsClosedLyric {
+                    ClosedNotchLyricLine()
+                        .padding(.horizontal, 10)
+                        .padding(.bottom, 6)
+                }
+
                 // Old sneak peek music
                 if coordinator.sneakPeek.show && coordinator.sneakPeek.type == .music {
                     if vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard {
@@ -264,7 +282,7 @@ struct ContentView: View {
                     }
                 }
               }
-              .conditionalModifier(coordinator.sneakPeek.show && (coordinator.sneakPeek.type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard) { view in
+              .conditionalModifier(showsClosedLyric || (coordinator.sneakPeek.show && (coordinator.sneakPeek.type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard)) { view in
                   view
                       .fixedSize()
               }
@@ -549,7 +567,7 @@ struct ContentView: View {
     }
 
     private func handleUpGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        guard vm.notchState == .open else { return }
+        guard vm.notchState == .open && !vm.isHoveringLyrics else { return }
 
         withAnimation(animationSpring) {
             gestureProgress = (translation / Defaults[.gestureSensitivity]) * -20

@@ -35,6 +35,32 @@ final class LRCParserTests: XCTestCase {
         XCTAssertEqual(lines.map(\.text), ["a", "", "b"])
     }
 
+    func testSungIndexSkipsGapsAndStopsAtEnds() {
+        let lines = LRCParser.parse("[00:10.00]a\n[00:20.00]\n[00:30.00]b")
+        XCTAssertEqual(lines.sungIndex(from: 0, forward: true), 2)
+        XCTAssertEqual(lines.sungIndex(from: 2, forward: false), 0)
+        XCTAssertEqual(lines.sungIndex(from: 2, forward: true), 2)
+        XCTAssertEqual(lines.sungIndex(from: 0, forward: false), 0)
+        XCTAssertEqual(lines.sungIndex(from: 1, forward: false), 0)
+        XCTAssertEqual(lines.sungIndex(from: nil, forward: true), 0)
+        XCTAssertEqual(lines.sungIndex(from: nil, forward: false), 0)
+    }
+
+    func testScrollTimingRestsAtBothEnds() {
+        let timing = LyricScrollTiming(lineStart: 10, lineEnd: 20)
+        XCTAssertEqual(timing.scrollStart, 11.5, accuracy: 0.0001)
+        XCTAssertEqual(timing.scrollEnd, 18.5, accuracy: 0.0001)
+        XCTAssertEqual(timing.fraction(at: 10), 0)
+        XCTAssertEqual(timing.fraction(at: 15), 0.5, accuracy: 0.0001)
+        XCTAssertEqual(timing.fraction(at: 19), 1)
+    }
+
+    func testScrollTimingHandlesZeroLengthLine() {
+        let timing = LyricScrollTiming(lineStart: 10, lineEnd: 10)
+        XCTAssertEqual(timing.fraction(at: 9), 0)
+        XCTAssertEqual(timing.fraction(at: 10), 1)
+    }
+
     func testBracketInsideLyricIsKept() {
         XCTAssertEqual(LRCParser.parse("[00:01.00][la la] song").first?.text, "[la la] song")
     }

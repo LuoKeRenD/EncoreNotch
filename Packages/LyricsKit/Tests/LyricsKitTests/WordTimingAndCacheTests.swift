@@ -298,6 +298,63 @@ final class LyricsOffsetTests: XCTestCase {
         XCTAssertEqual(sut.lyricPosition(at: 1), 10.3, accuracy: 0.001)
     }
 
+    private func pausedAt(_ position: TimeInterval, _ sut: LyricsController, uptime: TimeInterval = 10) {
+        let now = Date(timeIntervalSince1970: uptime)
+        sut.ingest(position: position, stamp: now, rate: 0, isPlaying: false, wallNow: now, uptime: uptime)
+    }
+
+    func testSeekWhilePausedMovesImmediatelyAndStaysPaused() {
+        let sut = make()
+        sut.setTrack(song)
+        pausedAt(20, sut)
+        let before = sut.seekCount
+        sut.noteSeek(to: 100, uptime: 11)
+        XCTAssertEqual(sut.position(at: 11), 100, accuracy: 0.001)
+        XCTAssertEqual(sut.position(at: 500), 100, accuracy: 0.001)
+        XCTAssertEqual(sut.seekCount, before + 1)
+    }
+
+    func testSeekWhilePlayingKeepsAdvancing() {
+        let sut = make()
+        sut.setTrack(song)
+        let now = Date(timeIntervalSince1970: 10)
+        sut.ingest(position: 20, stamp: now, rate: 1, isPlaying: true, wallNow: now, uptime: 10)
+        sut.noteSeek(to: 100, uptime: 11)
+        XCTAssertEqual(sut.position(at: 13), 102, accuracy: 0.001)
+    }
+
+    func testStaleReportAfterSeekIsIgnoredButConfirmationAccepted() {
+        let sut = make()
+        sut.setTrack(song)
+        pausedAt(20, sut)
+        sut.noteSeek(to: 100, uptime: 11)
+
+        pausedAt(20, sut, uptime: 11.1)
+        XCTAssertEqual(sut.position(at: 11.1), 100, accuracy: 0.001)
+
+        pausedAt(100.4, sut, uptime: 11.6)
+        // Small differences blend in over half a second.
+        XCTAssertEqual(sut.position(at: 12.2), 100.4, accuracy: 0.001)
+    }
+
+    func testLaterRealMoveIsAcceptedAfterHoldExpires() {
+        let sut = make()
+        sut.setTrack(song)
+        pausedAt(20, sut)
+        sut.noteSeek(to: 100, uptime: 11)
+        pausedAt(50, sut, uptime: 13)
+        XCTAssertEqual(sut.position(at: 13), 50, accuracy: 0.001)
+    }
+
+    func testSeekTargetUndoesOffsetsAndStaysInRange() {
+        let sut = make()
+        sut.setTrack(song)
+        sut.setGlobalOffset(0.5)
+        sut.setTrackOffset(0.2)
+        XCTAssertEqual(sut.seekTarget(forLyricTime: 10), 9.3, accuracy: 0.001)
+        XCTAssertEqual(sut.seekTarget(forLyricTime: 0.1), 0, accuracy: 0.001)
+    }
+
     func testTrackOffsetFollowsTrackAndPersists() {
         let sut = make()
         sut.setTrack(song)

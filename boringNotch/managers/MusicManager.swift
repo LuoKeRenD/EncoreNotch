@@ -490,11 +490,18 @@ class MusicManager: ObservableObject {
         }
     }
 
+    @MainActor
     func seek(to position: TimeInterval) {
+        LyricsController.app.noteSeek(to: position)
         Task {
             await activeController?.seek(to: position)
+            // Players can take a moment to report the new position, especially while paused.
+            try? await Task.sleep(for: .milliseconds(600))
+            forceUpdate()
         }
     }
+
+    @MainActor
     func skip(seconds: TimeInterval) {
         let newPos = min(max(0, elapsedTime + seconds), songDuration)
         seek(to: newPos)

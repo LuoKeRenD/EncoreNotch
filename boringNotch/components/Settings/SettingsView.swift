@@ -410,6 +410,10 @@ struct Media: View {
                 Defaults.Toggle(key: .enableLyrics) {
                     Text("Show lyrics")
                 }
+                Defaults.Toggle(key: .showLyricsInClosedNotch) {
+                    Text("Show the current line below the closed notch")
+                }
+                .disabled(!Defaults[.enableLyrics])
                 Stepper(
                     value: Binding(get: { lyrics.globalOffset }, set: { lyrics.setGlobalOffset($0) }),
                     in: LyricsController.offsetRange,
@@ -421,6 +425,9 @@ struct Media: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
+                }
+                Button("Open Lyrics Window") {
+                    LyricsWindowController.shared.show()
                 }
                 Button("Clear Saved Lyrics") {
                     LyricsCache.app.clear()

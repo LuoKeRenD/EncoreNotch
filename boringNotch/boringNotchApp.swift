@@ -25,6 +25,11 @@ struct DynamicNotchApp: App {
                 }
             }
             .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
+            Button("Show Lyrics Window") {
+                DispatchQueue.main.async {
+                    LyricsWindowController.shared.show()
+                }
+            }
             Divider()
             Button("Restart LyricsIsland") {
                 ApplicationRelauncher.restart()

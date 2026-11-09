@@ -42,6 +42,12 @@ public struct PlaybackClock: Equatable, Sendable {
         }
     }
 
+    /// Moves to `position` at once, keeping the current speed.
+    public mutating func seek(to position: TimeInterval, at now: TimeInterval) {
+        hasSample = true
+        anchor(position: position, rate: rate, at: now, correction: 0)
+    }
+
     private mutating func anchor(position: TimeInterval, rate: Double, at now: TimeInterval, correction: TimeInterval) {
         anchorPosition = position
         anchorTime = now

@@ -1,0 +1,23 @@
+{
+  "name": "lyricsisland-web",
+  "private": true,
+  "version": "0.1.0",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "scripts": {
+    "build": "vite build && node scripts/collect-licenses.mjs"
+  },
+  "dependencies": {
+    "@applemusic-like-lyrics/core": "0.6.0",
+    "@pixi/app": "7.4.3",
+    "@pixi/core": "7.4.3",
+    "@pixi/display": "7.4.3",
+    "@pixi/filter-blur": "7.4.3",
+    "@pixi/filter-bulge-pinch": "5.1.1",
+    "@pixi/filter-color-matrix": "7.4.3",
+    "@pixi/sprite": "7.4.3"
+  },
+  "devDependencies": {
+    "vite": "8.3.6"
+  }
+}

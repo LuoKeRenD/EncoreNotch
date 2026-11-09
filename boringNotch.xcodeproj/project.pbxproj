@@ -243,7 +243,7 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		B1C0DE000000000000000004 /* Lyrics */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Lyrics; sourceTree = "<group>"; };
+		B1C0DE000000000000000004 /* Lyrics */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (LyricsWeb, ); path = Lyrics; sourceTree = "<group>"; };
 		C1A0DE000000000000000004 /* Claude */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Claude; sourceTree = "<group>"; };
 		112FB72F2CCF12CC0015238C /* private */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = private; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
