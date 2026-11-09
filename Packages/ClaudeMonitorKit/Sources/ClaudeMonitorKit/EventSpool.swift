@@ -52,7 +52,11 @@ final class EventSpool {
     }
 
     func stop() {
-        try? FileManager.default.removeItem(at: pidFile)
+        // A relaunching app can start the new process before this one exits.
+        let ownPid = String(ProcessInfo.processInfo.processIdentifier)
+        if (try? String(contentsOf: pidFile, encoding: .utf8)) == ownPid {
+            try? FileManager.default.removeItem(at: pidFile)
+        }
         queue.sync {
             source?.cancel()
             source = nil

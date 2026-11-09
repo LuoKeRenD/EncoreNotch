@@ -58,3 +58,4 @@ Packages/ClaudeMonitorKit/.swiftpm/
 Packages/LyricsKit/.build/
 Packages/LyricsKit/.swiftpm/
 Packages/*/Package.resolved
+dist/

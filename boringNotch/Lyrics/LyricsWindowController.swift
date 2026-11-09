@@ -273,43 +273,35 @@ final class LyricsWindowController: NSObject {
 }
 
 extension LyricsWindowController: WKScriptMessageHandler {
-    nonisolated func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
+    func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
         let body = message.body as? [String: Any]
-        let type = body?["type"] as? String
-        let detail = body?["message"] as? String
-        let position = (body?["position"] as? NSNumber)?.doubleValue
-        MainActor.assumeIsolated {
-            switch type {
-            case "ready":
-                pageDidBecomeReady()
-            case "seek":
-                if let position, position.isFinite {
-                    music.seek(to: lyrics.seekTarget(forLyricTime: position / 1000))
-                }
-            case "error":
-                NSLog("Lyrics page error: \(detail ?? "unknown")")
-            default:
-                break
+        switch body?["type"] as? String {
+        case "ready":
+            pageDidBecomeReady()
+        case "seek":
+            if let position = (body?["position"] as? NSNumber)?.doubleValue, position.isFinite {
+                music.seek(to: lyrics.seekTarget(forLyricTime: position / 1000))
             }
+        case "error":
+            NSLog("Lyrics page error: \(body?["message"] as? String ?? "unknown")")
+        default:
+            break
         }
     }
 }
 
 extension LyricsWindowController: WKNavigationDelegate {
-    nonisolated func webView(
+    func webView(
         _ webView: WKWebView,
         decidePolicyFor action: WKNavigationAction,
         decisionHandler: @escaping @MainActor (WKNavigationActionPolicy) -> Void
     ) {
-        let allowed = action.request.url?.scheme == LyricsWebSchemeHandler.scheme
-        MainActor.assumeIsolated { decisionHandler(allowed ? .allow : .cancel) }
+        decisionHandler(action.request.url?.scheme == LyricsWebSchemeHandler.scheme ? .allow : .cancel)
     }
 
-    nonisolated func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
-        MainActor.assumeIsolated {
-            pageDidGoAway()
-            webView.load(URLRequest(url: LyricsWebSchemeHandler.startURL))
-        }
+    func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        pageDidGoAway()
+        webView.load(URLRequest(url: LyricsWebSchemeHandler.startURL))
     }
 }
 
