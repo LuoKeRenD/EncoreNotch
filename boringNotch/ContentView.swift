@@ -27,6 +27,7 @@ struct ContentView: View {
     @State private var gestureProgress: CGFloat = .zero
 
     @State private var haptics: Bool = false
+    @State private var openedForApproval = false
 
     @Namespace var albumArtNamespace
 
@@ -199,6 +200,9 @@ struct ContentView: View {
         .background(dragDetector)
         .preferredColorScheme(.dark)
         .environmentObject(vm)
+        .onChange(of: claudeMonitor.pendingApprovals.count) { previous, count in
+            handleApprovalCountChange(from: previous, to: count)
+        }
         .onChange(of: vm.anyDropZoneTargeting) { _, isTargeted in
             anyDropDebounceTask?.cancel()
 
@@ -446,6 +450,21 @@ struct ContentView: View {
         }
         } else {
             EmptyView()
+        }
+    }
+
+    private func handleApprovalCountChange(from previous: Int, to count: Int) {
+        if count > previous, !vm.hideOnClosed {
+            coordinator.currentView = .claude
+            if vm.notchState == .closed {
+                openedForApproval = true
+                doOpen()
+            }
+        } else if count == 0, openedForApproval {
+            openedForApproval = false
+            if !isHovering && vm.notchState == .open {
+                vm.close()
+            }
         }
     }
 

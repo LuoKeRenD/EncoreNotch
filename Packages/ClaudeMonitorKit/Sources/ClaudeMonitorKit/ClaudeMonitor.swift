@@ -13,10 +13,13 @@ public final class ClaudeMonitor: ObservableObject {
     @Published public private(set) var sessions: [ClaudeSession] = []
     @Published public private(set) var isEnabled = false
     @Published public private(set) var lastError: String?
+    @Published public private(set) var approvalsEnabled = false
+    @Published public private(set) var pendingApprovals: [ClaudeApprovalRequest] = []
 
     public let paths: ClaudeMonitorPaths
     private let installer: ClaudeHookInstaller
     private var spool: EventSpool?
+    private var approvals: ApprovalQueue?
     private var pruneTimer: Timer?
     private var byID: [String: ClaudeSession] = [:]
 
@@ -45,16 +48,42 @@ public final class ClaudeMonitor: ObservableObject {
     }
 
     /// Installs the hooks and starts watching. Failures are left in `lastError`.
-    public func enable() {
+    public func enable(approvals allowApprovals: Bool = false) {
         do {
-            try installer.install()
+            try installer.install(approvals: allowApprovals)
             try startWatching()
+            try setApprovalQueueRunning(allowApprovals)
             isEnabled = true
             lastError = nil
         } catch {
             stopWatching()
             isEnabled = false
             lastError = error.localizedDescription
+        }
+    }
+
+    /// Adds or removes the approval hook while monitoring stays on.
+    public func setApprovalsEnabled(_ enabled: Bool) {
+        guard isEnabled else { return }
+        do {
+            // Stopping first returns anything still waiting to Claude Code.
+            if !enabled { try setApprovalQueueRunning(false) }
+            try installer.install(approvals: enabled)
+            if enabled { try setApprovalQueueRunning(true) }
+            lastError = nil
+        } catch {
+            lastError = error.localizedDescription
+        }
+    }
+
+    /// Answers one request. Expired requests are ignored.
+    public func resolve(_ request: ClaudeApprovalRequest, decision: ClaudeApprovalDecision) {
+        approvals?.respond(id: request.id, decision: decision)
+        pendingApprovals.removeAll { $0.id == request.id }
+        if decision != .pass, var session = byID[request.sessionID] {
+            session.state = .working(tool: nil)
+            byID[request.sessionID] = session
+            publish()
         }
     }
 
@@ -91,17 +120,58 @@ public final class ClaudeMonitor: ObservableObject {
     }
 
     private func stopWatching() {
+        try? setApprovalQueueRunning(false)
         spool?.stop()
         spool = nil
         pruneTimer?.invalidate()
         pruneTimer = nil
     }
 
+    private func setApprovalQueueRunning(_ running: Bool) throws {
+        if running {
+            guard approvals == nil else { return }
+            let queue = ApprovalQueue(
+                directory: paths.approvalDirectory,
+                waitSeconds: TimeInterval(installer.approvalWaitSeconds)
+            ) { [weak self] pending in
+                Task { @MainActor in self?.pendingApprovals = pending }
+            }
+            try queue.start()
+            approvals = queue
+            approvalsEnabled = true
+        } else {
+            approvals?.stop()
+            approvals = nil
+            approvalsEnabled = false
+            pendingApprovals = []
+        }
+    }
+
     private func receive(_ events: [HookEvent]) {
         for event in events {
             SessionReducer.apply(event, to: &byID)
+            dismissApprovalsSettled(by: event)
         }
         publish()
+    }
+
+    /// If the request was answered elsewhere, its card must not stay on screen.
+    private func dismissApprovalsSettled(by event: HookEvent) {
+        let matchesTool: Bool
+        switch event.name {
+        case "PostToolUse", "PostToolUseFailure", "PermissionDenied":
+            matchesTool = true
+        case "Stop", "StopFailure", "SessionEnd", "UserPromptSubmit":
+            matchesTool = false
+        default:
+            return
+        }
+        for request in pendingApprovals
+        where request.sessionID == event.sessionID
+            && request.receivedAt <= event.timestamp
+            && (!matchesTool || request.toolName == event.toolName) {
+            resolve(request, decision: .pass)
+        }
     }
 
     private func pruneStaleSessions() {

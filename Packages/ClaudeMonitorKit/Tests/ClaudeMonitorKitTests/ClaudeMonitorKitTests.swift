@@ -271,6 +271,186 @@ final class ClaudeHookInstallerTests: XCTestCase {
         XCTAssertNil(HookEvent(json: data, timestamp: Date()))
     }
 
+    // MARK: - Approvals
+
+    private func handlerCommands(_ event: String) throws -> [String] {
+        let hooks = try XCTUnwrap(settings()["hooks"] as? [String: Any])
+        return ((hooks[event] as? [[String: Any]]) ?? []).flatMap {
+            (($0["hooks"] as? [[String: Any]]) ?? []).compactMap { $0["command"] as? String }
+        }
+    }
+
+    func testApprovalHookOnlyInstalledWhenRequestedAndRemovable() throws {
+        try installer.install()
+        XCTAssertFalse(try handlerCommands("PermissionRequest").contains(installer.approvalCommand))
+
+        try installer.install(approvals: true)
+        try installer.install(approvals: true)
+        XCTAssertEqual(try handlerCommands("PermissionRequest").filter { $0 == installer.approvalCommand }.count, 1)
+        XCTAssertTrue(try handlerCommands("PermissionRequest").contains(installer.hookCommand))
+        XCTAssertFalse(try handlerCommands("PreToolUse").contains(installer.approvalCommand))
+
+        try installer.install(approvals: false)
+        XCTAssertEqual(try handlerCommands("PermissionRequest"), [installer.hookCommand])
+        XCTAssertFalse(FileManager.default.fileExists(atPath: paths.approvalScript.path))
+    }
+
+    func testUninstallRemovesApprovalHookToo() throws {
+        try writeSettings(#"{"model":"opus"}"#)
+        try installer.install(approvals: true)
+        try installer.uninstall()
+        XCTAssertEqual(try settings() as NSDictionary, ["model": "opus"] as NSDictionary)
+    }
+
+    private final class Box: @unchecked Sendable {
+        private let lock = NSLock()
+        private var value: [ClaudeApprovalRequest] = []
+        var latest: [ClaudeApprovalRequest] {
+            get { lock.withLock { value } }
+            set { lock.withLock { value = newValue } }
+        }
+    }
+
+    /// Starts the real approval script, answers through the real queue, and
+    /// returns what Claude Code would receive on stdout.
+    private func runApproval(payload: String, waitSeconds: Int = 20, decide: ClaudeApprovalDecision?) throws -> (stdout: String, shown: [ClaudeApprovalRequest]) {
+        let installer = ClaudeHookInstaller(paths: paths, approvalWaitSeconds: waitSeconds)
+        try installer.install(approvals: true)
+        try Data(String(ProcessInfo.processInfo.processIdentifier).utf8).write(to: paths.pidFile)
+
+        let box = Box()
+        let appeared = decide == nil ? nil : expectation(description: "request shown")
+        appeared?.assertForOverFulfill = false
+        let queue = ApprovalQueue(directory: paths.approvalDirectory, waitSeconds: TimeInterval(waitSeconds)) { pending in
+            if !pending.isEmpty {
+                box.latest = pending
+                appeared?.fulfill()
+            }
+        }
+        try queue.start()
+
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/sh")
+        process.arguments = ["-c", installer.approvalCommand]
+        let input = Pipe(), output = Pipe()
+        process.standardInput = input
+        process.standardOutput = output
+        try process.run()
+        input.fileHandleForWriting.write(Data(payload.utf8))
+        try input.fileHandleForWriting.close()
+
+        if let decide, let appeared {
+            wait(for: [appeared], timeout: 8)
+            queue.respond(id: try XCTUnwrap(box.latest.first).id, decision: decide)
+        }
+        process.waitUntilExit()
+        queue.stop()
+        XCTAssertEqual(process.terminationStatus, 0)
+        let text = String(decoding: output.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self)
+        return (text, box.latest)
+    }
+
+    private let bashRequest = #"{"session_id":"a","cwd":"/tmp/demo","hook_event_name":"PermissionRequest","tool_name":"Bash","tool_input":{"command":"rm -rf build","description":"ignored"}}"#
+
+    private func decision(in stdout: String) throws -> [String: Any] {
+        let root = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(stdout.utf8)) as? [String: Any])
+        let output = try XCTUnwrap(root["hookSpecificOutput"] as? [String: Any])
+        XCTAssertEqual(output["hookEventName"] as? String, "PermissionRequest")
+        return try XCTUnwrap(output["decision"] as? [String: Any])
+    }
+
+    func testAllowReachesClaudeCodeAndShowsFullCommand() throws {
+        let result = try runApproval(payload: bashRequest, decide: .allow)
+        XCTAssertEqual(try decision(in: result.stdout)["behavior"] as? String, "allow")
+        XCTAssertEqual(result.shown.first?.detail, "rm -rf build")
+        XCTAssertEqual(result.shown.first?.projectName, "demo")
+        let left = try FileManager.default.contentsOfDirectory(atPath: paths.approvalDirectory.path)
+        XCTAssertEqual(left, [])
+    }
+
+    func testDenyReachesClaudeCode() throws {
+        let result = try runApproval(payload: bashRequest, decide: .deny)
+        let body = try decision(in: result.stdout)
+        XCTAssertEqual(body["behavior"] as? String, "deny")
+        XCTAssertNotNil(body["message"] as? String)
+    }
+
+    func testPassPrintsNothing() throws {
+        XCTAssertEqual(try runApproval(payload: bashRequest, decide: .pass).stdout, "")
+    }
+
+    func testTimeoutFallsBackSilently() throws {
+        let start = Date()
+        XCTAssertEqual(try runApproval(payload: bashRequest, waitSeconds: 1, decide: nil).stdout, "")
+        XCTAssertLessThan(Date().timeIntervalSince(start), 10)
+    }
+
+    func testInteractiveAndMalformedRequestsAreHandedBack() throws {
+        for payload in [
+            #"{"session_id":"a","tool_name":"AskUserQuestion","tool_input":{"questions":[]}}"#,
+            #"{"session_id":"a","tool_name":"Bash""#,
+            #"{"session_id":"a","tool_name":"Bash","tool_input":{"command":""}}"#,
+            #"{"session_id":"a","tool_name":"Bash","tool_input":{"command":"\#(String(repeating: "x", count: 20_001))"}}"#,
+        ] {
+            let result = try runApproval(payload: payload, decide: nil)
+            XCTAssertEqual(result.stdout, "")
+            XCTAssertTrue(result.shown.isEmpty)
+        }
+    }
+
+    func testStoppedAppReleasesWaitingHookQuickly() throws {
+        let installer = ClaudeHookInstaller(paths: paths, approvalWaitSeconds: 30)
+        try installer.install(approvals: true)
+        let sleeper = Process()
+        sleeper.executableURL = URL(fileURLWithPath: "/bin/sleep")
+        sleeper.arguments = ["60"]
+        try sleeper.run()
+        try Data(String(sleeper.processIdentifier).utf8).write(to: paths.pidFile)
+
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/sh")
+        process.arguments = ["-c", installer.approvalCommand]
+        let input = Pipe(), output = Pipe()
+        process.standardInput = input
+        process.standardOutput = output
+        try process.run()
+        input.fileHandleForWriting.write(Data(bashRequest.utf8))
+        try input.fileHandleForWriting.close()
+
+        Thread.sleep(forTimeInterval: 0.6)
+        XCTAssertTrue(process.isRunning)
+        let start = Date()
+        sleeper.terminate()
+        sleeper.waitUntilExit()
+        process.waitUntilExit()
+        XCTAssertLessThan(Date().timeIntervalSince(start), 3)
+        XCTAssertEqual(String(decoding: output.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self), "")
+    }
+
+    func testRequestFileIsPrivateWhileWaiting() throws {
+        try installer.install(approvals: true)
+        try Data(String(ProcessInfo.processInfo.processIdentifier).utf8).write(to: paths.pidFile)
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/sh")
+        process.arguments = ["-c", installer.approvalCommand]
+        let input = Pipe()
+        process.standardInput = input
+        process.standardOutput = Pipe()
+        try process.run()
+        input.fileHandleForWriting.write(Data(bashRequest.utf8))
+        try input.fileHandleForWriting.close()
+        Thread.sleep(forTimeInterval: 0.6)
+
+        let fm = FileManager.default
+        let name = try XCTUnwrap(fm.contentsOfDirectory(atPath: paths.approvalDirectory.path).first { $0.hasSuffix(".request.json") })
+        let attributes = try fm.attributesOfItem(atPath: paths.approvalDirectory.appendingPathComponent(name).path)
+        XCTAssertEqual((attributes[.posixPermissions] as? NSNumber)?.intValue, 0o600)
+
+        process.terminate()
+        process.waitUntilExit()
+        XCTAssertEqual(try fm.contentsOfDirectory(atPath: paths.approvalDirectory.path), [])
+    }
+
     func testSpoolDeliversInOrderAndDeletes() throws {
         try FileManager.default.createDirectory(at: paths.spoolDirectory, withIntermediateDirectories: true)
         let fm = FileManager.default

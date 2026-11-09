@@ -6,10 +6,14 @@ public struct ClaudeMonitorPaths: Equatable, Sendable {
     public let spoolDirectory: URL
     public let pidFile: URL
     public let backupDirectory: URL
+    public let approvalScript: URL
+    public let approvalDirectory: URL
 
     public init(claudeConfigDirectory: URL, supportDirectory: URL) {
         settingsFile = claudeConfigDirectory.appendingPathComponent("settings.json")
         hookScript = supportDirectory.appendingPathComponent("claude-hook.sh")
+        approvalScript = supportDirectory.appendingPathComponent("claude-approval-hook.sh")
+        approvalDirectory = supportDirectory.appendingPathComponent("claude-approvals", isDirectory: true)
         spoolDirectory = supportDirectory.appendingPathComponent("claude-events", isDirectory: true)
         pidFile = supportDirectory.appendingPathComponent("monitor.pid")
         backupDirectory = supportDirectory.appendingPathComponent("settings-backups", isDirectory: true)
@@ -53,15 +57,25 @@ public struct ClaudeHookInstaller: Sendable {
 
     public let paths: ClaudeMonitorPaths
 
-    public init(paths: ClaudeMonitorPaths) {
+    /// How long the approval hook waits for an answer from the notch before
+    /// handing the request back to Claude Code's normal permission flow.
+    public let approvalWaitSeconds: Int
+
+    public init(paths: ClaudeMonitorPaths, approvalWaitSeconds: Int = 90) {
         self.paths = paths
+        self.approvalWaitSeconds = approvalWaitSeconds
     }
 
-    /// The exact command string, used to recognise this app's entries.
+    /// The exact command strings, used to recognise this app's entries.
     public var hookCommand: String { Self.shellQuoted(paths.hookScript.path) }
+    public var approvalCommand: String { Self.shellQuoted(paths.approvalScript.path) }
 
-    public func install() throws {
-        try writeHookScript()
+    /// The approval hook is only present in settings while `approvals` is true.
+    public func install(approvals: Bool = false) throws {
+        try writeScript(hookScript, to: paths.hookScript)
+        if approvals {
+            try writeScript(approvalScript, to: paths.approvalScript)
+        }
         var root = try readSettings()
         var hooks = try hooksObject(in: root)
 
@@ -69,14 +83,36 @@ public struct ClaudeHookInstaller: Sendable {
             guard var groups = hooks[event] as? [[String: Any]] ?? (hooks[event] == nil ? [] : nil) else {
                 throw ClaudeHookInstallerError.malformedSettings("hooks.\(event) is not a list")
             }
-            if !groups.contains(where: containsOurHandler) {
+            if !groups.contains(where: { containsHandler($0, command: hookCommand) }) {
                 groups.append(["hooks": [["type": "command", "command": hookCommand, "timeout": 5] as [String: Any]]])
             }
             hooks[event] = groups
         }
 
+        // Validated as a list by the loop above.
+        var permissionGroups = hooks["PermissionRequest"] as? [[String: Any]] ?? []
+        if approvals {
+            if !permissionGroups.contains(where: { containsHandler($0, command: approvalCommand) }) {
+                permissionGroups.append(["hooks": [[
+                    "type": "command",
+                    "command": approvalCommand,
+                    // Longer than the script's own wait, so the script always decides.
+                    "timeout": approvalWaitSeconds + 10,
+                ] as [String: Any]]])
+            }
+        } else {
+            permissionGroups = permissionGroups.compactMap { removingHandler($0, command: approvalCommand) }
+        }
+        hooks["PermissionRequest"] = permissionGroups
+
         root["hooks"] = hooks
         try writeSettings(root)
+
+        if !approvals {
+            let fm = FileManager.default
+            try? fm.removeItem(at: paths.approvalScript)
+            try? fm.removeItem(at: paths.approvalDirectory)
+        }
     }
 
     public func uninstall() throws {
@@ -85,7 +121,9 @@ public struct ClaudeHookInstaller: Sendable {
 
         for (event, value) in hooks {
             guard let groups = value as? [[String: Any]] else { continue }
-            let remaining = groups.compactMap(removingOurHandler)
+            let remaining = groups
+                .compactMap { removingHandler($0, command: hookCommand) }
+                .compactMap { removingHandler($0, command: approvalCommand) }
             hooks[event] = remaining.isEmpty ? nil : remaining
         }
 
@@ -94,7 +132,9 @@ public struct ClaudeHookInstaller: Sendable {
 
         let fm = FileManager.default
         try? fm.removeItem(at: paths.hookScript)
+        try? fm.removeItem(at: paths.approvalScript)
         try? fm.removeItem(at: paths.spoolDirectory)
+        try? fm.removeItem(at: paths.approvalDirectory)
     }
 
     // MARK: - Settings
@@ -164,15 +204,15 @@ public struct ClaudeHookInstaller: Sendable {
         try fm.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
     }
 
-    private func containsOurHandler(_ group: [String: Any]) -> Bool {
+    private func containsHandler(_ group: [String: Any], command: String) -> Bool {
         guard let handlers = group["hooks"] as? [[String: Any]] else { return false }
-        return handlers.contains { $0["command"] as? String == hookCommand }
+        return handlers.contains { $0["command"] as? String == command }
     }
 
-    /// Returns the group without our handler, or nil if nothing remains.
-    private func removingOurHandler(_ group: [String: Any]) -> [String: Any]? {
-        guard containsOurHandler(group), let handlers = group["hooks"] as? [[String: Any]] else { return group }
-        let remaining = handlers.filter { $0["command"] as? String != hookCommand }
+    /// Returns the group without the handler, or nil if nothing remains.
+    private func removingHandler(_ group: [String: Any], command: String) -> [String: Any]? {
+        guard containsHandler(group, command: command), let handlers = group["hooks"] as? [[String: Any]] else { return group }
+        let remaining = handlers.filter { $0["command"] as? String != command }
         if remaining.isEmpty { return nil }
         var updated = group
         updated["hooks"] = remaining
@@ -181,15 +221,56 @@ public struct ClaudeHookInstaller: Sendable {
 
     // MARK: - Script
 
-    private func writeHookScript() throws {
+    private func writeScript(_ script: String, to url: URL) throws {
         let fm = FileManager.default
         try fm.createDirectory(
-            at: paths.hookScript.deletingLastPathComponent(),
+            at: url.deletingLastPathComponent(),
             withIntermediateDirectories: true,
             attributes: [.posixPermissions: 0o700]
         )
-        try Data(hookScript.utf8).write(to: paths.hookScript, options: .atomic)
-        try fm.setAttributes([.posixPermissions: 0o700], ofItemAtPath: paths.hookScript.path)
+        try Data(script.utf8).write(to: url, options: .atomic)
+        try fm.setAttributes([.posixPermissions: 0o700], ofItemAtPath: url.path)
+    }
+
+    /// Publishes the request, then waits for the app's answer. Printing nothing
+    /// leaves Claude Code's own permission flow in charge, so a timeout, a
+    /// stopped app or a "pass" answer all fall back to the normal prompt.
+    var approvalScript: String {
+        """
+        #!/bin/sh
+        # LyricsIsland notch approvals. Waits for an allow or deny from the local app.
+        dir=\(Self.shellQuoted(paths.approvalDirectory.path))
+        pidfile=\(Self.shellQuoted(paths.pidFile.path))
+        pid=$(cat "$pidfile" 2>/dev/null)
+        if [ -z "$pid" ] || ! kill -0 "$pid" 2>/dev/null; then
+          cat >/dev/null
+          exit 0
+        fi
+        umask 077
+        mkdir -p "$dir" 2>/dev/null
+        tmp=$(mktemp "$dir/.tmp.XXXXXX" 2>/dev/null) || { cat >/dev/null; exit 0; }
+        head -c \(Self.maxPayloadBytes) >"$tmp"
+        cat >/dev/null
+        id="$$-${tmp##*/.tmp.}"
+        request="$dir/$id.request.json"
+        response="$dir/$id.response.json"
+        trap 'rm -f "$tmp" "$request" "$response"; exit 0' HUP INT TERM
+        mv "$tmp" "$request" 2>/dev/null || exit 0
+        i=0
+        while [ "$i" -lt \(approvalWaitSeconds * 5) ]; do
+          if [ -f "$response" ]; then
+            cat "$response"
+            rm -f "$request" "$response"
+            exit 0
+          fi
+          kill -0 "$pid" 2>/dev/null || break
+          sleep 0.2
+          i=$((i + 1))
+        done
+        rm -f "$request" "$response"
+        exit 0
+
+        """
     }
 
     /// Records one event for the app. It prints nothing and always exits 0, so

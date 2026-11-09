@@ -131,6 +131,7 @@ extension Defaults.Keys {
     
     // MARK: Claude Code
     static let claudeMonitorEnabled = Key<Bool>("claudeMonitorEnabled", default: false)
+    static let claudeApprovalsEnabled = Key<Bool>("claudeApprovalsEnabled", default: false)
 
     // MARK: Fullscreen Media Detection
     static let hideNotchOption = Key<HideNotchOption>("hideNotchOption", default: .nowPlayingOnly)

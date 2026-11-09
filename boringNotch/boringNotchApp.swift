@@ -411,7 +411,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         setupDragDetectors()
 
         if Defaults[.claudeMonitorEnabled] {
-            ClaudeMonitor.app.enable()
+            ClaudeMonitor.app.enable(approvals: Defaults[.claudeApprovalsEnabled])
         }
 
         if coordinator.firstLaunch {

@@ -25,8 +25,12 @@ struct ClaudeActivityDot: View {
 struct ClaudeSessionsView: View {
     @ObservedObject private var monitor = ClaudeMonitor.app
 
+    private func identity(ofSession id: String) -> String? {
+        monitor.sessions.first { $0.id == id }?.identityLabel(among: monitor.sessions)
+    }
+
     var body: some View {
-        if monitor.sessions.isEmpty {
+        if monitor.sessions.isEmpty && monitor.pendingApprovals.isEmpty {
             VStack(spacing: 6) {
                 Image(systemName: "terminal")
                     .font(.title2)
@@ -38,6 +42,11 @@ struct ClaudeSessionsView: View {
         } else {
             ScrollView {
                 LazyVStack(spacing: 8) {
+                    ForEach(monitor.pendingApprovals) { request in
+                        ClaudeApprovalCard(request: request, identity: identity(ofSession: request.sessionID)) { decision in
+                            monitor.resolve(request, decision: decision)
+                        }
+                    }
                     ForEach(monitor.sessions) { session in
                         ClaudeSessionRow(session: session, identity: session.identityLabel(among: monitor.sessions))
                     }
@@ -46,6 +55,67 @@ struct ClaudeSessionsView: View {
             }
             .scrollIndicators(.never)
         }
+    }
+}
+
+private struct ClaudeApprovalCard: View {
+    let request: ClaudeApprovalRequest
+    let identity: String?
+    let onDecision: (ClaudeApprovalDecision) -> Void
+
+    /// The notch opens on hover, so a card must not accept a click the moment it appears.
+    @State private var armed = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 8) {
+                ClaudeActivityDot(activity: .needsAttention)
+                Text("\(identity.map { "\(request.projectName) · \($0)" } ?? request.projectName) wants to use \(request.toolName)")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+            }
+
+            ScrollView {
+                Text(request.detail)
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(.white.opacity(0.85))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .textSelection(.enabled)
+            }
+            .frame(maxHeight: 44)
+
+            HStack(spacing: 8) {
+                Spacer()
+                decisionButton("Deny", fill: Color.white.opacity(0.14), decision: .deny)
+                decisionButton("Allow once", fill: Color.green.opacity(0.75), decision: .allow)
+            }
+        }
+        .padding(8)
+        .background(RoundedRectangle(cornerRadius: 10).fill(.white.opacity(0.08)))
+        .task(id: request.id) {
+            armed = false
+            try? await Task.sleep(for: .milliseconds(800))
+            armed = !Task.isCancelled
+        }
+    }
+
+    private func decisionButton(_ title: String, fill: Color, decision: ClaudeApprovalDecision) -> some View {
+        Button {
+            onDecision(decision)
+        } label: {
+            Text(title)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 3)
+                .background(Capsule().fill(fill))
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .disabled(!armed)
+        .opacity(armed ? 1 : 0.45)
     }
 }
 
@@ -144,6 +214,17 @@ struct ClaudeSettings: View {
                     if coordinator.currentView == .claude { coordinator.currentView = .home }
                 }
                 Defaults[.claudeMonitorEnabled] = monitor.isEnabled
+                if !monitor.isEnabled { Defaults[.claudeApprovalsEnabled] = false }
+            }
+        )
+    }
+
+    private var approvals: Binding<Bool> {
+        Binding(
+            get: { monitor.approvalsEnabled },
+            set: { on in
+                monitor.setApprovalsEnabled(on)
+                Defaults[.claudeApprovalsEnabled] = monitor.approvalsEnabled
             }
         )
     }
@@ -152,6 +233,8 @@ struct ClaudeSettings: View {
         Form {
             Section {
                 Toggle("Show live Claude Code sessions", isOn: enabled)
+                Toggle("Approve permission requests from the notch", isOn: approvals)
+                    .disabled(!monitor.isEnabled)
                 if let error = monitor.lastError {
                     Text(error)
                         .foregroundStyle(.red)
@@ -163,7 +246,8 @@ struct ClaudeSettings: View {
             Section {
                 Text("Adds hook entries to \(monitor.paths.settingsFile.path). Your other settings and hooks are kept, but the file is rewritten with sorted keys.")
                 Text("The original file is backed up to \(monitor.paths.backupDirectory.path) before each change. Turning this off removes only the entries added here.")
-                Text("Hooks only report session activity to this app. They never approve or block anything, and do nothing while this app is not running.")
+                Text("With notch approvals off, hooks only report session activity and never approve or block anything. Hooks do nothing while this app is not running.")
+                Text("With notch approvals on, a permission request waits up to 90 seconds for your answer in the notch and opens it automatically. Clicking Allow once runs the action shown. Without an answer, Claude Code's normal permission prompt takes over. Deny rules still apply.")
             } header: {
                 Text("What this changes")
             }
