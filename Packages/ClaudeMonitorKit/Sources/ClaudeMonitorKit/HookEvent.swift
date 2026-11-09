@@ -10,6 +10,7 @@ public struct HookEvent: Equatable, Sendable {
     public var toolName: String?
     public var notificationType: String?
     public var error: String?
+    public var sessionTitle: String?
     public var timestamp: Date
 
     public init(
@@ -20,6 +21,7 @@ public struct HookEvent: Equatable, Sendable {
         toolName: String? = nil,
         notificationType: String? = nil,
         error: String? = nil,
+        sessionTitle: String? = nil,
         timestamp: Date
     ) {
         self.sessionID = sessionID
@@ -29,6 +31,7 @@ public struct HookEvent: Equatable, Sendable {
         self.toolName = toolName
         self.notificationType = notificationType
         self.error = error
+        self.sessionTitle = sessionTitle
         self.timestamp = timestamp
     }
 
@@ -40,6 +43,7 @@ public struct HookEvent: Equatable, Sendable {
         let tool_name: String?
         let notification_type: String?
         let error: String?
+        let session_title: String?
     }
 
     /// Returns nil for malformed or truncated payloads.
@@ -53,6 +57,7 @@ public struct HookEvent: Equatable, Sendable {
             toolName: payload.tool_name,
             notificationType: payload.notification_type,
             error: payload.error,
+            sessionTitle: payload.session_title,
             timestamp: timestamp
         )
     }

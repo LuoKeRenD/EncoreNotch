@@ -39,7 +39,7 @@ struct ClaudeSessionsView: View {
             ScrollView {
                 LazyVStack(spacing: 8) {
                     ForEach(monitor.sessions) { session in
-                        ClaudeSessionRow(session: session)
+                        ClaudeSessionRow(session: session, identity: session.identityLabel(among: monitor.sessions))
                     }
                 }
                 .padding(.top, 8)
@@ -51,6 +51,7 @@ struct ClaudeSessionsView: View {
 
 private struct ClaudeSessionRow: View {
     let session: ClaudeSession
+    let identity: String?
 
     private var activity: ClaudeActivity {
         switch session.state {
@@ -82,10 +83,20 @@ private struct ClaudeSessionRow: View {
             .frame(width: 10)
 
             VStack(alignment: .leading, spacing: 1) {
-                Text(session.projectName)
-                    .font(.headline)
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
+                HStack(spacing: 6) {
+                    Text(session.projectName)
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                        .layoutPriority(1)
+                    if let identity {
+                        Text(identity)
+                            .font(.subheadline)
+                            .foregroundStyle(.gray)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                    }
+                }
                 Text(status)
                     .font(.subheadline)
                     .foregroundStyle(.gray)

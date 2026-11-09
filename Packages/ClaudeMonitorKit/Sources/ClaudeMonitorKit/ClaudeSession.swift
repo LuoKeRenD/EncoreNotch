@@ -11,6 +11,8 @@ public enum ClaudeSessionState: Equatable, Sendable {
 public struct ClaudeSession: Identifiable, Equatable, Sendable {
     public let id: String
     public var cwd: String?
+    public var title: String?
+    public let startedAt: Date
     public var transcriptPath: String?
     public var state: ClaudeSessionState
     public var turnStartedAt: Date?
@@ -23,8 +25,20 @@ public struct ClaudeSession: Identifiable, Equatable, Sendable {
         return URL(fileURLWithPath: cwd).lastPathComponent
     }
 
+    /// What tells this session apart from others shown alongside it: its
+    /// custom title, or for an untitled session sharing a project name, when
+    /// it was first seen and the start of its ID.
+    public func identityLabel(among sessions: [ClaudeSession]) -> String? {
+        if let title = title?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty {
+            return title
+        }
+        guard sessions.contains(where: { $0.id != id && $0.projectName == projectName }) else { return nil }
+        return "\(startedAt.formatted(date: .omitted, time: .shortened)) · #\(id.prefix(6))"
+    }
+
     init(id: String, timestamp: Date) {
         self.id = id
+        self.startedAt = timestamp
         self.state = .waitingForInput
         self.lastActivity = timestamp
         self.runningSubagents = 0
@@ -42,6 +56,7 @@ public enum SessionReducer {
         var session = sessions[event.sessionID] ?? ClaudeSession(id: event.sessionID, timestamp: event.timestamp)
         session.lastActivity = max(session.lastActivity, event.timestamp)
         session.cwd = event.cwd ?? session.cwd
+        session.title = event.sessionTitle ?? session.title
         session.transcriptPath = event.transcriptPath ?? session.transcriptPath
 
         switch event.name {
