@@ -21,11 +21,12 @@ struct ContentView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var claudeMonitor = ClaudeMonitor.app
+    @ObservedObject var clawdStage = ClawdStage.shared
+    @Default(.claudeMusicIndicator) var claudeMusicIndicator
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
 
-    @State private var gestureProgress: CGFloat = .zero
 
     @State private var haptics: Bool = false
     @State private var openedForApproval = false
@@ -61,7 +62,7 @@ struct ContentView: View {
     }
 
     private var showsClosedLyric: Bool {
-        guard lyricsEnabled, closedLyricsEnabled, vm.notchState == .closed, !vm.hideOnClosed,
+        guard !showsClawdCaption, lyricsEnabled, closedLyricsEnabled, vm.notchState == .closed, !vm.hideOnClosed,
               !coordinator.sneakPeek.show, musicManager.isPlaying || !musicManager.isPlayerIdle,
               case .loaded(.synced) = lyrics.status
         else { return false }
@@ -73,8 +74,55 @@ struct ContentView: View {
         claudeMonitor.sessions.first?.state ?? .waitingForInput
     }
 
+    private var clawdPhase: ClawdPhase {
+        clawdStage.phase(for: claudeMonitor)
+    }
+
     private var showsClosedClaudeIndicator: Bool {
-        !coordinator.expandingView.show && vm.notchState == .closed && claudeMonitor.activity != .none && !vm.hideOnClosed
+        !coordinator.expandingView.show && vm.notchState == .closed && clawdPhase != .none && !vm.hideOnClosed
+    }
+
+    /// A request or a finished session grows the island and names it below the notch.
+    private var showsClawdCaption: Bool {
+        showsClosedClaudeIndicator && clawdPhase.isAnnouncing
+    }
+
+    /// With the spinner chosen for music, announcements take the whole island.
+    private var clawdTakesWholeIsland: Bool {
+        showsClawdCaption && claudeMusicIndicator == .spinner
+    }
+
+    private var clawdUnit: CGFloat {
+        ClawdTiming.unit(forRowHeight: vm.effectiveClosedNotchHeight)
+    }
+
+    private var clawdSpriteHeight: CGFloat {
+        CGFloat(ClawdScript.rows) * clawdUnit
+    }
+
+
+    /// Requests in the Claude tab get a taller notch.
+    private var wantsTallClaudeView: Bool {
+        vm.notchState == .open && coordinator.currentView == .claude && !claudeMonitor.pendingApprovals.isEmpty
+    }
+
+    private func updateOpenHeight() {
+        guard vm.notchState == .open else { return }
+        let height = wantsTallClaudeView ? claudeRequestNotchHeight : openNotchSize.height
+        guard vm.notchSize.height != height else { return }
+        withAnimation(animationSpring) {
+            vm.notchSize.height = height
+        }
+    }
+
+    /// The script for a slot-sized Clawd.
+    private func clawdSlotScript(placesSpectrum: Bool) -> ClawdScript {
+        switch clawdPhase {
+        case .attention: return .alert
+        case .celebrating: return .celebrate(placesSpectrum ? .spectrum : .asterisk)
+        case .working(typing: false): return .idle
+        case .working, .none: return .typing
+        }
     }
 
     private var computedChinWidth: CGFloat {
@@ -98,13 +146,6 @@ struct ContentView: View {
     }
 
     var body: some View {
-        // Calculate scale based on gesture progress only
-        let gestureScale: CGFloat = {
-            guard gestureProgress != 0 else { return 1.0 }
-            let scaleFactor = 1.0 + gestureProgress * 0.01
-            return max(0.6, scaleFactor)
-        }()
-        
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 let mainLayout = NotchLayout()
@@ -125,6 +166,19 @@ struct ContentView: View {
                             .frame(height: 1)
                             .padding(.horizontal, topCornerRadius)
                     }
+                    .overlay {
+                        // A grown island is easy to miss under a lyric line, so it also flashes.
+                        if showsClawdCaption {
+                            PulsingOutline(
+                                cornerRadius: cornerRadiusInsets.closed.bottom,
+                                color: clawdPhase == .celebrating
+                                    ? Color(red: 0.3, green: 0.85, blue: 0.45)
+                                    : Color(red: 1, green: 0.76, blue: 0.2)
+                            )
+                            // The black body sits inside the flared top corners.
+                            .padding(.horizontal, topCornerRadius)
+                        }
+                    }
                     .shadow(
                         color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow])
                             ? .black.opacity(0.7) : .clear, radius: Defaults[.cornerRadiusScaling] ? 6 : 4
@@ -142,26 +196,18 @@ struct ContentView: View {
                         
                         return view
                             .animation(vm.notchState == .open ? openAnimation : closeAnimation, value: vm.notchState)
-                            .animation(.smooth, value: gestureProgress)
+                            .animation(animationSpring, value: clawdPhase)
                     }
                     .contentShape(Rectangle())
                     .onHover { hovering in
                         handleHover(hovering)
                     }
                     .onTapGesture {
+                        if case .attention = clawdPhase, vm.notchState == .closed {
+                            coordinator.currentView = .claude
+                            openedForApproval = true
+                        }
                         doOpen()
-                    }
-                    .conditionalModifier(Defaults[.enableGestures]) { view in
-                        view
-                            .panGesture(direction: .down) { translation, phase in
-                                handleDownGesture(translation: translation, phase: phase)
-                            }
-                    }
-                    .conditionalModifier(Defaults[.closeGestureEnabled] && Defaults[.enableGestures]) { view in
-                        view
-                            .panGesture(direction: .up) { translation, phase in
-                                handleUpGesture(translation: translation, phase: phase)
-                            }
                     }
                     .onReceive(NotificationCenter.default.publisher(for: .sharingDidFinish)) { _ in
                         if vm.notchState == .open && !isHovering {
@@ -208,18 +254,14 @@ struct ContentView: View {
         .padding(.bottom, 8)
         .frame(maxWidth: windowSize.width, maxHeight: windowSize.height, alignment: .top)
         .compositingGroup()
-        .scaleEffect(
-            x: gestureScale,
-            y: gestureScale,
-            anchor: .top
-        )
-        .animation(.smooth, value: gestureProgress)
         .background(dragDetector)
         .preferredColorScheme(.dark)
         .environmentObject(vm)
         .onChange(of: claudeMonitor.pendingApprovals.count) { previous, count in
             handleApprovalCountChange(from: previous, to: count)
         }
+        .onChange(of: wantsTallClaudeView) { updateOpenHeight() }
+        .onChange(of: vm.notchState) { updateOpenHeight() }
         .onChange(of: vm.anyDropZoneTargeting) { _, isTargeted in
             anyDropDebounceTask?.cancel()
 
@@ -253,8 +295,12 @@ struct ContentView: View {
         VStack(alignment: .leading) {
             VStack(alignment: .leading) {
                 if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
-                    MusicLiveActivity()
-                        .frame(alignment: .center)
+                    if clawdTakesWholeIsland {
+                        ClawdWholeIsland()
+                    } else {
+                        MusicLiveActivity()
+                            .frame(alignment: .center)
+                    }
                 } else if showsClosedClaudeIndicator {
                     ClaudeClosedIndicator()
                 } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed {
@@ -262,9 +308,12 @@ struct ContentView: View {
                 } else if vm.notchState == .open {
                     BoringHeader()
                         .frame(height: max(24, vm.effectiveClosedNotchHeight))
-                        .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
                 } else {
                     Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: vm.effectiveClosedNotchHeight)
+                }
+
+                if showsClawdCaption, let caption = clawdPhase.caption {
+                    ClawdCaption(caption)
                 }
 
                 if showsClosedLyric {
@@ -287,7 +336,7 @@ struct ContentView: View {
                     }
                 }
               }
-              .conditionalModifier(showsClosedLyric || (coordinator.sneakPeek.show && (coordinator.sneakPeek.type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard)) { view in
+              .conditionalModifier(showsClawdCaption || showsClosedLyric || (coordinator.sneakPeek.show && (coordinator.sneakPeek.type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard)) { view in
                   view
                       .fixedSize()
               }
@@ -310,7 +359,6 @@ struct ContentView: View {
                 )
                 .zIndex(1)
                 .allowsHitTesting(vm.notchState == .open)
-                .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
             }
         }
         .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $vm.generalDropTargeting))
@@ -319,16 +367,89 @@ struct ContentView: View {
     @ViewBuilder
     func ClaudeClosedIndicator() -> some View {
         let side = max(0, vm.effectiveClosedNotchHeight - 12)
+        let center = vm.closedNotchSize.width - 20
+        let leftSlot = CGFloat(ClawdScript.typing.slotColumns) * clawdUnit
         HStack {
-            ClawdMark(cellWidth: side >= 24 ? 1.5 : 1)
-                .frame(width: side, height: side)
-            Rectangle()
-                .fill(.black)
-                .frame(width: vm.closedNotchSize.width - 20)
-            ClaudeSpinner(state: closedClaudeState, size: 15)
-                .frame(width: side, height: side)
+            if clawdPhase == .celebrating {
+                // Clawd runs across and takes the spinner with him.
+                ClawdSprite(script: .celebrate(.asterisk), unit: clawdUnit, slotWidth: side)
+                    .frame(width: leftSlot + 8 + center + 8 + side, height: clawdSpriteHeight)
+            } else {
+                let script = clawdSlotScript(placesSpectrum: false)
+                ClawdSprite(script: script, unit: clawdUnit)
+                    .frame(width: CGFloat(script.slotColumns) * clawdUnit, height: clawdSpriteHeight)
+                Rectangle()
+                    .fill(.black)
+                    .frame(width: center)
+                ClaudeSpinner(state: closedClaudeState, size: 15)
+                    .frame(width: side, height: side)
+            }
         }
         .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
+    }
+
+    /// Music is playing with the spinner chosen: Clawd takes the whole island to announce.
+    @ViewBuilder
+    func ClawdWholeIsland() -> some View {
+        let side = max(0, vm.effectiveClosedNotchHeight - 12)
+        let center = vm.closedNotchSize.width - 20
+        let leftSlot = CGFloat(ClawdScript.alert.slotColumns) * clawdUnit
+        HStack {
+            if clawdPhase == .celebrating {
+                // Clawd walks to the spinner, swaps it for the spectrum and carries it off.
+                let width = leftSlot + 8 + center + 8 + side
+                // The music layout this returns to: artwork, centre and spectrum slot.
+                let musicWidth = side + 8 + (vm.closedNotchSize.width - cornerRadiusInsets.closed.top) + 8 + side
+                ZStack(alignment: .trailing) {
+                    ClawdPlacedSpectrum(prop: .swap, islandGrowth: width - musicWidth)
+                    ClawdSprite(script: .celebrate(.swap), unit: clawdUnit, slotWidth: side)
+                        .frame(width: width, height: clawdSpriteHeight)
+                }
+            } else {
+                ClawdSprite(script: .enterThenAlert, unit: clawdUnit)
+                    .frame(width: leftSlot + 8 + center, height: clawdSpriteHeight)
+                ClaudeSpinner(state: closedClaudeState, size: 15, paused: true)
+                    .frame(width: side, height: side)
+            }
+        }
+        .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
+    }
+
+    /// The music spectrum as the closed notch shows it, revealed when Clawd sets it down.
+    ///
+    /// The island grows symmetrically, so its right edge sits `islandGrowth / 2`
+    /// further out than it will once Clawd leaves. Shifting by that much puts the
+    /// spectrum exactly where it stays when the island shrinks back.
+    @ViewBuilder
+    func ClawdPlacedSpectrum(prop: ClawdProp, islandGrowth: CGFloat) -> some View {
+        let side = max(0, vm.effectiveClosedNotchHeight - 12)
+        if useMusicVisualizer, let delay = ClawdTiming.spectrumAppears(for: prop) {
+            DelayedReveal(delay: delay) {
+                Rectangle()
+                    .fill(
+                        Defaults[.coloredSpectrogram]
+                            ? Color(nsColor: musicManager.avgColor).gradient
+                            : Color.gray.gradient
+                    )
+                    .frame(width: 50, alignment: .center)
+                    .mask {
+                        AudioSpectrumView(isPlaying: $musicManager.isPlaying)
+                            .frame(width: 16, height: 12)
+                    }
+            }
+            .frame(width: side, height: side)
+            .offset(x: -islandGrowth / 2)
+        }
+    }
+
+    func ClawdCaption(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 12, weight: .semibold, design: .rounded))
+            .foregroundStyle(Color(red: 0.95, green: 0.62, blue: 0.48))
+            .lineLimit(1)
+            .frame(maxWidth: .infinity)
+            .padding(.bottom, 6)
+            .transition(.opacity)
     }
 
     @ViewBuilder
@@ -390,7 +511,7 @@ struct ContentView: View {
                 )
                 .overlay {
                     // The spectrum slot belongs to Claude, so the artwork shows playback.
-                    if claudeMonitor.activity != .none {
+                    if clawdPhase != .none {
                         ClosedArtworkPlaybackState()
                     }
                 }
@@ -443,8 +564,21 @@ struct ContentView: View {
                 )
 
             HStack {
-                if claudeMonitor.activity != .none {
-                    ClaudeSpinner(state: closedClaudeState, size: 15)
+                if clawdPhase != .none {
+                    if claudeMusicIndicator == .clawd {
+                        let script = clawdSlotScript(placesSpectrum: true)
+                        // The real spectrum appears behind Clawd, where it stays once he leaves.
+                        ZStack {
+                            if clawdPhase == .celebrating {
+                                ClawdPlacedSpectrum(prop: .spectrum, islandGrowth: 0)
+                            }
+                            // Slightly wider than the slot; it overlaps the island's padding, not its width.
+                            ClawdSprite(script: script, unit: clawdUnit)
+                                .frame(width: CGFloat(script.slotColumns) * clawdUnit, height: clawdSpriteHeight)
+                        }
+                    } else {
+                        ClaudeSpinner(state: closedClaudeState, size: 15)
+                    }
                 } else if useMusicVisualizer {
                     Rectangle()
                         .fill(
@@ -467,7 +601,6 @@ struct ContentView: View {
                 width: max(
                     0,
                     vm.effectiveClosedNotchHeight - 12
-                        + gestureProgress / 2
                 ),
                 height: max(
                     0,
@@ -500,11 +633,8 @@ struct ContentView: View {
 
     private func handleApprovalCountChange(from previous: Int, to count: Int) {
         if count > previous, !vm.hideOnClosed {
+            // The closed island announces the request; clicking it opens the cards.
             coordinator.currentView = .claude
-            if vm.notchState == .closed {
-                openedForApproval = true
-                doOpen()
-            }
         } else if count == 0, openedForApproval {
             openedForApproval = false
             if !isHovering && vm.notchState == .open {
@@ -567,59 +697,6 @@ struct ContentView: View {
             }
         }
     }
-
-    // MARK: - Gesture Handling
-
-    private func handleDownGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        guard vm.notchState == .closed else { return }
-
-        if phase == .ended {
-            withAnimation(animationSpring) { gestureProgress = .zero }
-            return
-        }
-
-        withAnimation(animationSpring) {
-            gestureProgress = (translation / Defaults[.gestureSensitivity]) * 20
-        }
-
-        if translation > Defaults[.gestureSensitivity] {
-            if Defaults[.enableHaptics] {
-                haptics.toggle()
-            }
-            withAnimation(animationSpring) {
-                gestureProgress = .zero
-            }
-            doOpen()
-        }
-    }
-
-    private func handleUpGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        guard vm.notchState == .open && !vm.isHoveringLyrics else { return }
-
-        withAnimation(animationSpring) {
-            gestureProgress = (translation / Defaults[.gestureSensitivity]) * -20
-        }
-
-        if phase == .ended {
-            withAnimation(animationSpring) {
-                gestureProgress = .zero
-            }
-        }
-
-        if translation > Defaults[.gestureSensitivity] {
-            withAnimation(animationSpring) {
-                isHovering = false
-            }
-            if !SharingStateManager.shared.preventNotchClose { 
-                gestureProgress = .zero
-                vm.close()
-            }
-
-            if Defaults[.enableHaptics] {
-                haptics.toggle()
-            }
-        }
-    }
 }
 
 struct FullScreenDropDelegate: DropDelegate {
@@ -668,4 +745,64 @@ struct GeneralDropTargetDelegate: DropDelegate {
     return ContentView()
         .environmentObject(vm)
         .frame(width: vm.notchSize.width, height: vm.notchSize.height)
+}
+
+/// Shows its content after a delay, fading in.
+private struct DelayedReveal<Content: View>: View {
+    let delay: TimeInterval
+    @ViewBuilder let content: () -> Content
+    @State private var shown = false
+
+    var body: some View {
+        content()
+            .opacity(shown ? 1 : 0)
+            .task {
+                try? await Task.sleep(for: .seconds(delay))
+                guard !Task.isCancelled else { return }
+                withAnimation(.easeIn(duration: 0.15)) { shown = true }
+            }
+    }
+}
+
+/// An outline that flashes while Clawd announces something. It follows the
+/// island's sides and bottom corners and leaves the screen edge open.
+private struct PulsingOutline: View {
+    let cornerRadius: CGFloat
+    let color: Color
+    @State private var bright = false
+
+    private let lineWidth: CGFloat = 2
+
+    var body: some View {
+        IslandOutline(bottomCornerRadius: cornerRadius, inset: lineWidth / 2)
+            .stroke(color, lineWidth: lineWidth)
+            .opacity(bright ? 1 : 0.15)
+            .allowsHitTesting(false)
+            .onAppear {
+                withAnimation(.easeInOut(duration: 0.55).repeatForever(autoreverses: true)) {
+                    bright = true
+                }
+            }
+    }
+}
+
+/// The island's sides and bottom, with the same quadratic bottom corners as
+/// `NotchShape`, so an outline traces its edge. Open along the top.
+private struct IslandOutline: Shape {
+    let bottomCornerRadius: CGFloat
+    /// Keeps a stroke of twice this width inside the island.
+    let inset: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        let rect = CGRect(x: rect.minX + inset, y: rect.minY, width: rect.width - inset * 2, height: rect.height - inset)
+        let radius = max(0, bottomCornerRadius - inset)
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY - radius))
+        path.addQuadCurve(to: CGPoint(x: rect.minX + radius, y: rect.maxY), control: CGPoint(x: rect.minX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.maxX - radius, y: rect.maxY))
+        path.addQuadCurve(to: CGPoint(x: rect.maxX, y: rect.maxY - radius), control: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        return path
+    }
 }

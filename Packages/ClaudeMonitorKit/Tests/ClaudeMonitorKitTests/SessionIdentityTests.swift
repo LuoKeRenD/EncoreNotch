@@ -72,4 +72,20 @@ final class SessionIdentityTests: XCTestCase {
         let all = Array(sessions.values)
         XCTAssertNil(sessions["a"]?.identityLabel(among: all))
     }
+
+    func testTranscriptTitleTakesTheLatestRenameOnly() throws {
+        let lines = [
+            #"{"type":"user","message":{"content":"\"type\":\"custom-title\" in a prompt"}}"#,
+            #"{"type":"custom-title","customTitle":"First name","sessionId":"a"}"#,
+            #"{"type":"assistant","message":{}}"#,
+            #"{"type":"custom-title","customTitle":"  Renamed  ","sessionId":"a"}"#,
+            #"{"type":"custom-title","customTitle":"#,
+        ]
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("transcript-\(UUID().uuidString).jsonl")
+        defer { try? FileManager.default.removeItem(at: url) }
+        try Data(lines.joined(separator: "\n").utf8).write(to: url)
+        XCTAssertEqual(TranscriptTitle.read(at: url.path), "Renamed")
+        XCTAssertNil(TranscriptTitle.latestTitle(in: Data(lines[0].utf8)))
+        XCTAssertNil(TranscriptTitle.read(at: "/nonexistent/transcript.jsonl"))
+    }
 }

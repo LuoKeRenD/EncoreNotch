@@ -89,7 +89,6 @@ private final class LyricsBrowser: ObservableObject {
 struct LyricsPanelView: View {
     @ObservedObject private var lyrics = LyricsController.app
     @ObservedObject private var music = MusicManager.shared
-    @EnvironmentObject private var vm: BoringViewModel
     @StateObject private var browser = LyricsBrowser()
     @State private var isHovering = false
 
@@ -114,7 +113,6 @@ struct LyricsPanelView: View {
             // After the overlay, so moving onto the control still counts as hovering.
             .onHover { hovering in
                 isHovering = hovering
-                vm.isHoveringLyrics = hovering
                 if hovering {
                     browser.startListening()
                 } else {
@@ -123,7 +121,6 @@ struct LyricsPanelView: View {
             }
             .onChange(of: lyrics.status) { browser.returnToPlayback() }
             .onDisappear {
-                vm.isHoveringLyrics = false
                 browser.stopListening()
                 browser.returnToPlayback()
             }

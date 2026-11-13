@@ -24297,17 +24297,6 @@
         }
       }
     },
-    "With notch approvals on, a permission request waits up to 90 seconds for your answer in the notch and opens it automatically. Clicking Allow once runs the action shown. Without an answer, Claude Code's normal permission prompt takes over. Deny rules still apply." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "开启刘海批准后，权限请求会自动展开刘海，并最多等待你 90 秒。点击“允许一次”会执行显示的操作。如果没有回应，将转回 Claude Code 原有的授权流程。拒绝规则依然有效。"
-          }
-        }
-      }
-    },
     "Word" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -24524,6 +24513,171 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "适用于大多数媒体应用（包括浏览器），可检测正在播放的内容。注意：在部分 macOS 版本上可能不可用。"
+          }
+        }
+      }
+    },
+    "Clawd" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clawd"
+          }
+        }
+      }
+    },
+    "Clawd has a question" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clawd 有问题要问你"
+          }
+        }
+      }
+    },
+    "Clawd needs permission" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clawd 需要授权"
+          }
+        }
+      }
+    },
+    "Clawd session complete" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clawd 会话已完成"
+          }
+        }
+      }
+    },
+    "Closed notch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收起的刘海"
+          }
+        }
+      }
+    },
+    "Spinner" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "星号 ✻"
+          }
+        }
+      }
+    },
+    "While music plays, show" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放音乐时显示"
+          }
+        }
+      }
+    },
+    "With Clawd, he works in the spectrum's place and puts it back when a session completes. With the spinner, Clawd takes the whole island only to ask for permission or announce a completed session." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择 Clawd 时，它会在频谱的位置工作，会话完成后再把频谱放回去。选择星号时，Clawd 只在请求授权或宣布会话完成时占用整个灵动岛。"
+          }
+        }
+      }
+    },
+    "With notch approvals on, a permission request waits up to 90 seconds for your answer. The island grows to announce it; click it to answer. Claude's multiple-choice questions can be answered there too. Clicking Allow once runs the action shown. Without an answer, Claude Code's normal permission prompt takes over. Deny rules still apply." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开启刘海批准后，权限请求最多等待你 90 秒。灵动岛会略微变大来提醒你，点击它即可回答。Claude 的选择题也可以直接在那里作答。点击“允许一次”会执行显示的操作。如果没有回应，将转回 Claude Code 原有的授权流程。拒绝规则依然有效。"
+          }
+        }
+      }
+    },
+    "%@ asks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 想问你"
+          }
+        }
+      }
+    },
+    "Choose any" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可多选"
+          }
+        }
+      }
+    },
+    "Answer in terminal" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在终端里回答"
+          }
+        }
+      }
+    },
+    "Submit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提交"
+          }
+        }
+      }
+    },
+    "Wants to use %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "想要使用 %@"
+          }
+        }
+      }
+    },
+    "Claude asks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude 想问你"
           }
         }
       }

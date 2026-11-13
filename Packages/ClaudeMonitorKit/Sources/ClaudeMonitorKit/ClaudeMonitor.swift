@@ -22,6 +22,8 @@ public final class ClaudeMonitor: ObservableObject {
     private var approvals: ApprovalQueue?
     private var pruneTimer: Timer?
     private var byID: [String: ClaudeSession] = [:]
+    /// Sessions whose transcript has already been searched for a title.
+    private var titleLookups: Set<String> = []
 
     /// A session with neither hook events nor transcript writes for this long
     /// is assumed gone. If it is still alive, its next event brings it back.
@@ -98,6 +100,7 @@ public final class ClaudeMonitor: ObservableObject {
             lastError = error.localizedDescription
         }
         byID = [:]
+        titleLookups = []
         publish()
     }
 
@@ -152,6 +155,27 @@ public final class ClaudeMonitor: ObservableObject {
             SessionReducer.apply(event, to: &byID)
             dismissApprovalsSettled(by: event)
         }
+        lookUpMissingTitles()
+        publish()
+    }
+
+    /// Names sessions that started before monitoring did, from their transcripts.
+    private func lookUpMissingTitles() {
+        for (id, session) in byID where session.title == nil && !titleLookups.contains(id) {
+            guard let path = session.transcriptPath else { continue }
+            titleLookups.insert(id)
+            Task.detached(priority: .utility) { [weak self] in
+                guard let title = TranscriptTitle.read(at: path) else { return }
+                await self?.adoptTitle(title, forSession: id)
+            }
+        }
+    }
+
+    private func adoptTitle(_ title: String, forSession id: String) {
+        // A title from a hook is newer than the transcript's.
+        guard var session = byID[id], session.title == nil else { return }
+        session.title = title
+        byID[id] = session
         publish()
     }
 

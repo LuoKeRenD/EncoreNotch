@@ -388,6 +388,8 @@ final class ClaudeHookInstallerTests: XCTestCase {
     func testInteractiveAndMalformedRequestsAreHandedBack() throws {
         for payload in [
             #"{"session_id":"a","tool_name":"AskUserQuestion","tool_input":{"questions":[]}}"#,
+            #"{"session_id":"a","tool_name":"AskUserQuestion","tool_input":{"questions":[{"question":"Which?","options":[]}]}}"#,
+            #"{"session_id":"a","tool_name":"ExitPlanMode","tool_input":{"plan":"Do it"}}"#,
             #"{"session_id":"a","tool_name":"Bash""#,
             #"{"session_id":"a","tool_name":"Bash","tool_input":{"command":""}}"#,
             #"{"session_id":"a","tool_name":"Bash","tool_input":{"command":"\#(String(repeating: "x", count: 20_001))"}}"#,
@@ -396,6 +398,37 @@ final class ClaudeHookInstallerTests: XCTestCase {
             XCTAssertEqual(result.stdout, "")
             XCTAssertTrue(result.shown.isEmpty)
         }
+    }
+
+    private let questionRequest = #"{"session_id":"a","cwd":"/tmp/demo","hook_event_name":"PermissionRequest","tool_name":"AskUserQuestion","tool_input":{"questions":[{"question":"Which framework?","header":"Framework","options":[{"label":"React","description":"Component library"},{"label":"Vue"}],"multiSelect":false},{"question":"Which extras?","header":"Extras","options":[{"label":"Tests"},{"label":"Docs"}],"multiSelect":true}]}}"#
+
+    func testQuestionsAreShownAndAnsweredWithOriginalInput() throws {
+        let answers = ["Which framework?": "React", "Which extras?": "Tests, Docs"]
+        let result = try runApproval(payload: questionRequest, decide: .answer(answers))
+
+        let shown = try XCTUnwrap(result.shown.first)
+        XCTAssertEqual(shown.questions.map(\.question), ["Which framework?", "Which extras?"])
+        XCTAssertEqual(shown.questions.first?.options.map(\.label), ["React", "Vue"])
+        XCTAssertEqual(shown.questions.first?.options.first?.description, "Component library")
+        XCTAssertEqual(shown.questions.last?.multiSelect, true)
+
+        let body = try decision(in: result.stdout)
+        XCTAssertEqual(body["behavior"] as? String, "allow")
+        let input = try XCTUnwrap(body["updatedInput"] as? [String: Any])
+        XCTAssertEqual(input["answers"] as? [String: String], answers)
+        let questions = try XCTUnwrap(input["questions"] as? [[String: Any]])
+        XCTAssertEqual(questions.count, 2)
+        XCTAssertEqual(questions.first?["header"] as? String, "Framework")
+    }
+
+    func testIncompleteAnswersAreHandedBack() throws {
+        let result = try runApproval(payload: questionRequest, decide: .answer(["Which framework?": "React"]))
+        XCTAssertEqual(result.stdout, "")
+    }
+
+    func testAnswerIsIgnoredForOrdinaryRequests() throws {
+        let result = try runApproval(payload: bashRequest, waitSeconds: 2, decide: .answer(["x": "y"]))
+        XCTAssertEqual(result.stdout, "")
     }
 
     func testStoppedAppReleasesWaitingHookQuickly() throws {

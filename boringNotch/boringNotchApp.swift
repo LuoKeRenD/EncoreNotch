@@ -173,8 +173,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupDragDetectors() {
         cleanupDragDetectors()
 
-        guard Defaults[.expandedDragDetection] else { return }
-
+        // The detector always runs; the setting only chooses how large its
+        // region is. Without it, a closed notch relied solely on SwiftUI's
+        // drop target, which covers just the closed notch and often misses.
         if Defaults[.showOnAllDisplays] {
             for screen in NSScreen.screens {
                 setupDragDetectorForScreen(screen)
@@ -194,10 +195,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         guard let uuid = screen.displayUUID else { return }
         
         let screenFrame = screen.frame
-        let notchHeight = openNotchSize.height
-        let notchWidth = openNotchSize.width
-        
-        // Create notch region at the top-center of the screen where an open notch would occupy
+        let notchWidth: CGFloat
+        let notchHeight: CGFloat
+        if Defaults[.expandedDragDetection] {
+            notchWidth = openNotchSize.width
+            notchHeight = openNotchSize.height
+        } else {
+            // A little larger than the closed notch so it can be hit reliably.
+            let closed = getClosedNotchSize(screenUUID: uuid)
+            notchWidth = closed.width + 60
+            notchHeight = max(closed.height, 24) + 16
+        }
+
+        // Create the region at the top-center of the screen
         let notchRegion = CGRect(
             x: screenFrame.midX - notchWidth / 2,
             y: screenFrame.maxY - notchHeight,
@@ -218,12 +228,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func handleDragEntersNotchRegion(onScreen screen: NSScreen) {
-        guard let uuid = screen.displayUUID else { return }
+        guard Defaults[.boringShelf], let uuid = screen.displayUUID else { return }
         
         if Defaults[.showOnAllDisplays], let viewModel = viewModels[uuid] {
             viewModel.open()
             coordinator.currentView = .shelf
-        } else if !Defaults[.showOnAllDisplays], let windowScreen = window?.screen, screen == windowScreen {
+        } else if !Defaults[.showOnAllDisplays], window?.screen?.displayUUID == uuid {
             vm.open()
             coordinator.currentView = .shelf
         }

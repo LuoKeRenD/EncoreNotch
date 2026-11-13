@@ -20,8 +20,9 @@ extension ClaudeSessionState {
 
     var spinnerAnimates: Bool {
         switch self {
-        case .working, .compacting, .waitingForApproval: return true
-        case .failed, .waitingForInput: return false
+        // Waiting for you holds still, so it reads as paused rather than busy.
+        case .working, .compacting: return true
+        case .waitingForApproval, .failed, .waitingForInput: return false
         }
     }
 }
@@ -33,13 +34,15 @@ extension ClaudeSessionState {
 struct ClaudeSpinner: NSViewRepresentable {
     let state: ClaudeSessionState
     var size: CGFloat = 13
+    /// Shows the resting glyph in the state's colour without cycling.
+    var paused = false
 
     func makeNSView(context: Context) -> SpinnerView {
         SpinnerView()
     }
 
     func updateNSView(_ view: SpinnerView, context: Context) {
-        view.configure(color: NSColor(state.spinnerColor), animates: state.spinnerAnimates, size: size)
+        view.configure(color: NSColor(state.spinnerColor), animates: state.spinnerAnimates && !paused, size: size)
     }
 }
 

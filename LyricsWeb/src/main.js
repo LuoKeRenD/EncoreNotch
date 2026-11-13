@@ -66,12 +66,17 @@ document.getElementById("background").appendChild(background.getElement());
 const ignoredErrorMs = 80;
 // Larger differences are a real seek, which plays AMLL's jump animation.
 const seekThresholdMs = 1000;
+// Smaller corrections are eased in over about this long instead of jumping.
+// AMLL's interlude dots animate straight from this clock, so a jump makes
+// them stutter, and a step back would freeze them until time caught up.
+const correctionMs = 400;
 
 let anchorPosition = 0;
 let anchorTime = performance.now();
 let rate = 0;
 let isPlaying = false;
 let seekPending = false;
+let pendingCorrection = 0;
 
 function positionAt(now) {
   return anchorPosition + (isPlaying ? rate * (now - anchorTime) : 0);
@@ -88,7 +93,23 @@ function show(element) {
 let reportedPosition = 0;
 
 let lastFrame = performance.now();
+
+function easeCorrection(elapsed) {
+  if (pendingCorrection === 0) return;
+  let step = pendingCorrection * Math.min(1, elapsed / correctionMs);
+  if (isPlaying) {
+    // Never run backwards: at most halve the clock's speed while catching up.
+    step = Math.max(step, -0.5 * rate * elapsed);
+  } else {
+    step = pendingCorrection;
+  }
+  anchorPosition += step;
+  pendingCorrection -= step;
+  if (Math.abs(pendingCorrection) < 1) pendingCorrection = 0;
+}
+
 function frame(now) {
+  easeCorrection(now - lastFrame);
   const position = positionAt(now);
   reportedPosition = seekPending ? position : Math.max(reportedPosition, position);
   player.setCurrentTime(reportedPosition, seekPending);
@@ -104,6 +125,7 @@ window.lyricsIsland = {
     player.setLyricLines(lines, positionMs);
     anchorPosition = positionMs;
     anchorTime = performance.now();
+    pendingCorrection = 0;
     reportedPosition = positionMs;
     player.update(0);
     background.setHasLyric(lines.length > 0);
@@ -138,12 +160,16 @@ window.lyricsIsland = {
         player.pause();
       }
     }
-    if (Math.abs(error) >= seekThresholdMs) {
+    const isSeek = Math.abs(error) >= seekThresholdMs;
+    if (isSeek) {
       seekPending = true;
     }
-    if (stateChanged || Math.abs(error) >= ignoredErrorMs) {
+    if (stateChanged || isSeek) {
       anchorPosition = position;
       anchorTime = now;
+      pendingCorrection = 0;
+    } else if (Math.abs(error) >= ignoredErrorMs) {
+      pendingCorrection = error;
     }
     rate = effectiveRate;
     isPlaying = playing;
