@@ -13,12 +13,15 @@ import SwiftUI
 
 @main
 struct DynamicNotchApp: App {
+    /// Stored properties initialise in order, so this runs before the app
+    /// delegate or any setting is created.
+    private let migration: Void = LegacyMigration.runIfNeeded()
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @Default(.menubarIcon) var showMenuBarIcon
     @Environment(\.openWindow) var openWindow
 
     var body: some Scene {
-        MenuBarExtra("LyricsIsland", systemImage: "music.note", isInserted: $showMenuBarIcon) {
+        MenuBarExtra("EncoreNotch", systemImage: "music.note", isInserted: $showMenuBarIcon) {
             Button("Settings") {
                 DispatchQueue.main.async {
                     SettingsWindowController.shared.showWindow()
@@ -36,7 +39,7 @@ struct DynamicNotchApp: App {
                 }
             }
             Divider()
-            Button("Restart LyricsIsland") {
+            Button("Restart EncoreNotch") {
                 ApplicationRelauncher.restart()
             }
             Button("Quit", role: .destructive) {

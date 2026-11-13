@@ -1,8 +1,8 @@
-# LyricsIsland
+# EncoreNotch
 
 把 MacBook 的刘海变成一座「灵动岛」：显示正在播放的音乐和同步歌词，暂存拖进来的文件，并实时显示 Claude Code 会话，还能直接在刘海里批准权限请求、回答 Claude 的提问。
 
-> LyricsIsland 修改自 TheBoredTeam 的 [Boring Notch](https://github.com/TheBoredTeam/boring.notch)，以 GPL-3.0 许可证发布。
+> EncoreNotch 修改自 TheBoredTeam 的 [Boring Notch](https://github.com/TheBoredTeam/boring.notch)，以 GPL-3.0 许可证发布。
 > 自 2026-11-08 起的修改：删除了日历、镜子、系统 HUD 替换、电池指示、媒体键拦截、XPC 辅助程序、Sparkle 自动更新和手势控制；新增了同步歌词、歌词窗口、Claude Code 会话监控和 Clawd 动画。
 
 ## 功能
@@ -40,12 +40,12 @@
 
 ## 安装
 
-1. 从 [Releases](../../releases) 下载 `LyricsIsland-<版本>.dmg`。
-2. 打开 DMG，把 LyricsIsland 拖进「应用程序」文件夹。
+1. 从 [Releases](../../releases) 下载 `EncoreNotch-<版本>.dmg`。
+2. 打开 DMG，把 EncoreNotch 拖进「应用程序」文件夹。
 3. 这个 App 没有经过 Apple 公证，第一次打开前可能需要在终端运行：
 
    ```bash
-   xattr -dr com.apple.quarantine /Applications/LyricsIsland.app
+   xattr -dr com.apple.quarantine /Applications/EncoreNotch.app
    ```
 
 ## 从源码编译
@@ -54,7 +54,7 @@
 
 ```bash
 git clone <这个仓库的地址>
-cd LyricsIsland
+cd EncoreNotch
 open boringNotch.xcodeproj
 ```
 
@@ -81,20 +81,20 @@ cd Packages/ClaudeMonitorKit && swift test
 ### 打包发布
 
 ```bash
-scripts/package.sh path/to/LyricsIsland.app
+scripts/package.sh path/to/EncoreNotch.app
 ```
 
 它会在 `dist/` 里生成 DMG 和对应的源码压缩包。按照 GPL-3.0 和 AGPL-3.0 的要求，分发 DMG 时需要一起提供源码。
 
 ## 许可证
 
-- LyricsIsland 和它修改自的 Boring Notch 以 [GPL-3.0](LICENSE) 发布。
+- EncoreNotch 和它修改自的 Boring Notch 以 [GPL-3.0](LICENSE) 发布。
 - 歌词窗口打包了 `@applemusic-like-lyrics/core`（AGPL-3.0-only），源码和打包配置在 `LyricsWeb/`，打包进 App 的许可证在 `boringNotch/Lyrics/LyricsWeb/THIRD_PARTY_LICENSES.txt`。
 - 其他第三方组件的许可证见 [THIRD_PARTY_LICENSES](THIRD_PARTY_LICENSES)。
 
 ## 致谢
 
-- [Boring Notch](https://github.com/TheBoredTeam/boring.notch)：LyricsIsland 的基础。
+- [Boring Notch](https://github.com/TheBoredTeam/boring.notch)：EncoreNotch 的基础。
 - [MediaRemoteAdapter](https://github.com/ungive/mediaremote-adapter)：让 macOS 15.4 以上仍能读取 Now Playing 信息。
 - [NotchDrop](https://github.com/Lakr233/NotchDrop)：暂存架功能最初的来源。
 - [Apple Music-like Lyrics](https://github.com/Steve-xmh/applemusic-like-lyrics)：歌词窗口的渲染。

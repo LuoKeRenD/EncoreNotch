@@ -1,6 +1,6 @@
 //
 //  LyricsEditor.swift
-//  LyricsIsland
+//  EncoreNotch
 //
 
 import AppKit

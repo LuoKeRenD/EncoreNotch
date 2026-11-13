@@ -488,7 +488,7 @@ struct About: View {
             }
             VStack(spacing: 0) {
                 Divider()
-                Text("LyricsIsland is a modified version of Boring Notch by TheBoredTeam, licensed under GPL-3.0.")
+                Text("EncoreNotch is a modified version of Boring Notch by TheBoredTeam, licensed under GPL-3.0.")
                     .foregroundStyle(.secondary)
                     .padding(.top, 5)
                     .padding(.bottom, 7)

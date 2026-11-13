@@ -114,7 +114,7 @@ public enum ClaudeApprovalDecision: Equatable, Sendable {
         }
         switch self {
         case .allow: return output(#"{"behavior":"allow"}"#)
-        case .deny: return output(#"{"behavior":"deny","message":"Denied from the LyricsIsland notch."}"#)
+        case .deny: return output(#"{"behavior":"deny","message":"Denied from the EncoreNotch notch."}"#)
         case .pass: return Data()
         case .answer(let answers):
             // Documented for AskUserQuestion: allow with the original input plus `answers`.

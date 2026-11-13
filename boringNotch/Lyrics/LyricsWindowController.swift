@@ -1,6 +1,6 @@
 //
 //  LyricsWindowController.swift
-//  LyricsIsland
+//  EncoreNotch
 //
 
 import AppKit
@@ -12,7 +12,7 @@ import WebKit
 /// Serves the bundled lyrics page. A custom scheme gives the page a real
 /// origin, which ES modules need and `file://` URLs do not have.
 private final class LyricsWebSchemeHandler: NSObject, WKURLSchemeHandler {
-    static let scheme = "lyricsisland"
+    static let scheme = "encorenotch"
     static let startURL = URL(string: "\(scheme)://app/index.html")!
 
     private let root = Bundle.main.url(forResource: "LyricsWeb", withExtension: nil)?.standardizedFileURL
@@ -102,7 +102,7 @@ private struct LyricsWindowControls: View {
 final class LyricsWindowController: NSObject {
     static let shared = LyricsWindowController()
 
-    private static let messageHandlerName = "lyricsIsland"
+    private static let messageHandlerName = "encoreNotch"
     /// The page extrapolates between these, so they only need to catch drift.
     private static let syncInterval: Duration = .milliseconds(250)
     private static let syncsPerCalibration = 20
@@ -243,7 +243,7 @@ final class LyricsWindowController: NSObject {
     private func call(_ expression: String, _ arguments: [String: Any]) {
         guard isPageReady, let webView else { return }
         webView.callAsyncJavaScript(
-            "window.lyricsIsland.\(expression)",
+            "window.encoreNotch.\(expression)",
             arguments: arguments,
             in: nil,
             in: .page

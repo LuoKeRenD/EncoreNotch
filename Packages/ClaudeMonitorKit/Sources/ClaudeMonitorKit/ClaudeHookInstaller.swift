@@ -238,7 +238,7 @@ public struct ClaudeHookInstaller: Sendable {
     var approvalScript: String {
         """
         #!/bin/sh
-        # LyricsIsland notch approvals. Waits for an allow or deny from the local app.
+        # EncoreNotch notch approvals. Waits for an allow or deny from the local app.
         dir=\(Self.shellQuoted(paths.approvalDirectory.path))
         pidfile=\(Self.shellQuoted(paths.pidFile.path))
         pid=$(cat "$pidfile" 2>/dev/null)
@@ -279,7 +279,7 @@ public struct ClaudeHookInstaller: Sendable {
     var hookScript: String {
         """
         #!/bin/sh
-        # LyricsIsland Claude Code monitor. Records events for the local app only.
+        # EncoreNotch Claude Code monitor. Records events for the local app only.
         spool=\(Self.shellQuoted(paths.spoolDirectory.path))
         pidfile=\(Self.shellQuoted(paths.pidFile.path))
         pid=$(cat "$pidfile" 2>/dev/null)

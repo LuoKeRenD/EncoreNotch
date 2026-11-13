@@ -3,7 +3,7 @@ import "@applemusic-like-lyrics/core/style.css";
 import "./style.css";
 
 function notifyNative(message) {
-  window.webkit?.messageHandlers?.lyricsIsland?.postMessage(message);
+  window.webkit?.messageHandlers?.encoreNotch?.postMessage(message);
 }
 
 window.addEventListener("error", (event) => notifyNative({ type: "error", message: String(event.message) }));
@@ -119,7 +119,7 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 
-window.lyricsIsland = {
+window.encoreNotch = {
   setLines(lines, positionMs) {
     cancelScrollHold();
     player.setLyricLines(lines, positionMs);

@@ -1,6 +1,6 @@
 //
 //  ClawdStage.swift
-//  LyricsIsland
+//  EncoreNotch
 //
 
 import ClaudeMonitorKit

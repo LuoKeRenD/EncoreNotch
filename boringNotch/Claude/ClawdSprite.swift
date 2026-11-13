@@ -1,6 +1,6 @@
 //
 //  ClawdSprite.swift
-//  LyricsIsland
+//  EncoreNotch
 //
 //  Animated pixel Clawd for the closed notch. Every frame is drawn once into a
 //  bitmap and played back by Core Animation, so animating costs no SwiftUI

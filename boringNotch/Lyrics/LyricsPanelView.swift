@@ -1,6 +1,6 @@
 //
 //  LyricsPanelView.swift
-//  LyricsIsland
+//  EncoreNotch
 //
 
 import LyricsKit
@@ -9,7 +9,7 @@ import SwiftUI
 extension LyricsCache {
     static let app = LyricsCache(
         directory: FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("LyricsIsland/lyrics-v1", isDirectory: true)
+            .appendingPathComponent("EncoreNotch/lyrics-v1", isDirectory: true)
     )
 }
 
@@ -18,7 +18,7 @@ extension LyricsController {
         provider: CachingLyricsProvider(source: LRCLIBProvider(), cache: .app),
         userStore: UserLyricsStore(
             directory: FileManager.default.homeDirectoryForCurrentUser
-                .appendingPathComponent("Library/Application Support/LyricsIsland/user-lyrics", isDirectory: true)
+                .appendingPathComponent("Library/Application Support/EncoreNotch/user-lyrics", isDirectory: true)
         )
     )
 }

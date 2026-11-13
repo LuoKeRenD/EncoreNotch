@@ -23301,13 +23301,13 @@
         }
       }
     },
-    "LyricsIsland is a modified version of Boring Notch by TheBoredTeam, licensed under GPL-3.0." : {
+    "EncoreNotch is a modified version of Boring Notch by TheBoredTeam, licensed under GPL-3.0." : {
       "extractionState" : "manual",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "LyricsIsland 是 TheBoredTeam 开发的 Boring Notch 的修改版本，以 GPL-3.0 许可发布。"
+            "value" : "EncoreNotch 是 TheBoredTeam 开发的 Boring Notch 的修改版本，以 GPL-3.0 许可发布。"
           }
         }
       }
@@ -23477,13 +23477,13 @@
         }
       }
     },
-    "Restart LyricsIsland" : {
+    "Restart EncoreNotch" : {
       "extractionState" : "manual",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重启 LyricsIsland"
+            "value" : "重启 EncoreNotch"
           }
         }
       }

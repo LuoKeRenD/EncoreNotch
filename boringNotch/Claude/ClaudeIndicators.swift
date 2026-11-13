@@ -1,6 +1,6 @@
 //
 //  ClaudeIndicators.swift
-//  LyricsIsland
+//  EncoreNotch
 //
 
 import AppKit

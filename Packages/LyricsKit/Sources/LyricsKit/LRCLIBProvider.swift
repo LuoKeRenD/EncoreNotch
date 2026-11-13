@@ -195,7 +195,7 @@ public struct LRCLIBProvider: LyricsProvider {
         var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
         components.queryItems = items
         var request = URLRequest(url: components.url!, timeoutInterval: 15)
-        request.setValue("LyricsIsland/0.1", forHTTPHeaderField: "User-Agent")
+        request.setValue("EncoreNotch/1.1", forHTTPHeaderField: "User-Agent")
 
         let (data, status) = try await transport(request)
         switch status {

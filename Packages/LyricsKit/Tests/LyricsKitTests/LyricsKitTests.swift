@@ -167,7 +167,7 @@ final class LRCLIBProviderTests: XCTestCase {
     private func provider(_ responses: [String: (String, Int)], recorder: Recorder = Recorder()) -> LRCLIBProvider {
         LRCLIBProvider { request in
             recorder.add(request.url!)
-            XCTAssertEqual(request.value(forHTTPHeaderField: "User-Agent"), "LyricsIsland/0.1")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "User-Agent"), "EncoreNotch/1.1")
             let (body, status) = responses[request.url!.lastPathComponent] ?? ("", 404)
             return (Data(body.utf8), status)
         }

@@ -1,10 +1,10 @@
 //
 //  ClaudeMonitor+App.swift
-//  LyricsIsland
+//  EncoreNotch
 //
 
 import ClaudeMonitorKit
 
 extension ClaudeMonitor {
-    @MainActor static let app = ClaudeMonitor(paths: .standard(appSupportName: "LyricsIsland"))
+    @MainActor static let app = ClaudeMonitor(paths: .standard(appSupportName: "EncoreNotch"))
 }
