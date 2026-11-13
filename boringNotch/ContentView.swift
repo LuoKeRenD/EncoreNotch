@@ -408,7 +408,8 @@ struct ContentView: View {
             } else {
                 ClawdSprite(script: .enterThenAlert, unit: clawdUnit)
                     .frame(width: leftSlot + 8 + center, height: clawdSpriteHeight)
-                ClaudeSpinner(state: closedClaudeState, size: 15, paused: true)
+                // Waiting for an answer, so it holds still.
+                ClaudeSpinner(state: closedClaudeState, size: 15)
                     .frame(width: side, height: side)
             }
         }

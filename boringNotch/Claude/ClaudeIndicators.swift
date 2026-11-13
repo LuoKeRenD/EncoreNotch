@@ -34,15 +34,13 @@ extension ClaudeSessionState {
 struct ClaudeSpinner: NSViewRepresentable {
     let state: ClaudeSessionState
     var size: CGFloat = 13
-    /// Shows the resting glyph in the state's colour without cycling.
-    var paused = false
 
     func makeNSView(context: Context) -> SpinnerView {
         SpinnerView()
     }
 
     func updateNSView(_ view: SpinnerView, context: Context) {
-        view.configure(color: NSColor(state.spinnerColor), animates: state.spinnerAnimates && !paused, size: size)
+        view.configure(color: NSColor(state.spinnerColor), animates: state.spinnerAnimates, size: size)
     }
 }
 
@@ -127,39 +125,5 @@ final class SpinnerView: NSView {
             .ctm: NSAffineTransform(transform: AffineTransform(scaleByX: scale, byY: scale)),
         ]
         return image.cgImage(forProposedRect: &rect, context: nil, hints: hints)
-    }
-}
-
-/// Claude Code's terminal mascot, drawn from the block characters of its banner.
-struct ClawdMark: View {
-    /// Filled cells per row as inclusive column ranges.
-    private static let rows: [[ClosedRange<Int>]] = [
-        [2...13],
-        [2...3, 5...10, 12...13],
-        [0...15],
-        [2...13],
-        [3...3, 5...5, 10...10, 12...12],
-    ]
-    private static let columns = 16
-
-    /// Width of one cell. Terminal cells are twice as tall as they are wide.
-    var cellWidth: CGFloat = 1.5
-
-    var body: some View {
-        Canvas { context, _ in
-            let color = Color(red: 0.85, green: 0.47, blue: 0.34)
-            for (row, runs) in Self.rows.enumerated() {
-                for run in runs {
-                    let rect = CGRect(
-                        x: CGFloat(run.lowerBound) * cellWidth,
-                        y: CGFloat(row) * cellWidth * 2,
-                        width: CGFloat(run.count) * cellWidth,
-                        height: cellWidth * 2
-                    )
-                    context.fill(Path(rect), with: .color(color))
-                }
-            }
-        }
-        .frame(width: CGFloat(Self.columns) * cellWidth, height: CGFloat(Self.rows.count) * cellWidth * 2)
     }
 }
