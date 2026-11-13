@@ -1,6 +1,8 @@
 # EncoreNotch
 
-<img src="assets/icon.png" alt="图标" style="zoom:25%;" />
+<div align="center">
+  <img src="assets/icon.png" width="280" alt="应用图标">
+</div>
 
 把 MacBook 的刘海变成一座「灵动岛」：显示正在播放的音乐和同步歌词，暂存拖进来的文件，并实时显示 Claude Code 会话，还能直接在刘海里批准权限请求、回答 Claude 的提问。
 
