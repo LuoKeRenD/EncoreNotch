@@ -53,7 +53,7 @@
 需要 Xcode 26 或更高版本。
 
 ```bash
-git clone <这个仓库的地址>
+git clone https://github.com/LuoKeRenD/EncoreNotch.git
 cd EncoreNotch
 open boringNotch.xcodeproj
 ```
