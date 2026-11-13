@@ -1,5 +1,7 @@
 # EncoreNotch
 
+<img src="assets/icon.png" alt="图标" style="zoom:25%;" />
+
 把 MacBook 的刘海变成一座「灵动岛」：显示正在播放的音乐和同步歌词，暂存拖进来的文件，并实时显示 Claude Code 会话，还能直接在刘海里批准权限请求、回答 Claude 的提问。
 
 > EncoreNotch 修改自 TheBoredTeam 的 [Boring Notch](https://github.com/TheBoredTeam/boring.notch)，以 GPL-3.0 许可证发布。
@@ -12,11 +14,15 @@
 - 从 [LRCLIB](https://lrclib.net) 获取同步歌词，支持逐字时间轴，查询结果缓存在本地。
 - 刘海里显示上一句、当前句和下一句；也可以在收起的刘海下方显示当前这一句。
 - 点击歌词跳转到对应位置；歌词偏移可以整体调整，也可以每首歌单独调整。
+
+![音乐控制演示](assets/MusicCtrlDemo.gif)
+
 - 歌词窗口使用 [Apple Music-like Lyrics](https://github.com/Steve-xmh/applemusic-like-lyrics) 渲染，带专辑封面背景和播放控制。
 - 自动找不到时，可以手动搜索、粘贴或导入歌词。
 
 ### 暂存架
-- 把文件拖到刘海上就会展开暂存架，支持隔空投送和快速分享。
+
+- 保留BoringNotch原有的功能：把文件拖到刘海上就会展开暂存架，支持隔空投送和快速分享。
 
 ### Claude Code
 - 显示正在运行的 Claude Code 会话和它们的状态。默认关闭，在设置里开启。
@@ -30,7 +36,10 @@
 - 会话在 App 启动前就已经开始时，会从它的对话记录里读出你给会话起的名字，只解析改名那一行。
 - 开启刘海批准后，待批准的命令或工具参数会显示在刘海里，Claude 的提问会显示题目和选项。
 
+![Agent监控演示](assets/ClaudeMonitorDemo.gif)
+
 ### 界面语言
+
 - 英文和简体中文。
 
 ## 系统要求
